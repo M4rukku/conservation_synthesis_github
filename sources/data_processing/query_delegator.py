@@ -1,7 +1,9 @@
 from . import queries
-from .repositories import AbstractRepository, DataNotFoundError
+from .repositories import AbstractRepository, DataNotFoundError, \
+    OpenAireRepository, CrossrefRepository, CoreRepository
 import asyncio
-from sources.data_processing.queries import AbstractQuery, FailedQueryResponse, KeywordQuery
+from sources.data_processing.queries import AbstractQuery, FailedQueryResponse, \
+    KeywordQuery
 from threading import Timer
 from sources.data_processing.async_mp_queue import AsyncMPQueue
 import functools
@@ -80,16 +82,54 @@ class QueryDelegator:
                  response_queue: AsyncMPQueue):
         self._query_delegation_queue = query_delegation_queue
         self._response_queue = response_queue
+        self._query_counter = QueryCounter()
 
     def generate_journal_repo_preferences(self):
         pass
-    
-    repo_identifier_repo_map = {"openaire", "crossref", "CORE", "arxiv", "ms_academic"}
-    query_repository_preferences = {"KeywordQuery" : ["openaire", "CORE", "crossref"],
-                                    "JournalQuery" : ["crossref", "openaire", "CORE"]}
+
+    repo_identifier_repo_map = {"openaire": OpenAireRepository.__class__,
+                                "crossref": CrossrefRepository.__class__,
+                                "CORE": CoreRepository.__class__}
+
+    repo_identifier_max_conn = {"openaire": 15,
+                                "crossref": 15,
+                                "CORE": 15}
+
+    query_repository_preferences = \
+        {"KeywordQuery": ["openaire", "CORE", "crossref"],
+         "DOIQuery": ["openaire", "CORE", "crossref"],
+         "JournalTimeIntervalQuery": ["crossref", "openaire", "CORE"]}
+
+    async def wait_until_repository_available(self, repo_identifier):
+        while (self._query_counter.get_open_connections_for_repo(
+                repo_identifier) < self.repo_identifier_max_conn[repo_identifier]):
+            await asyncio.sleep(0.5)
+
+    # Version!
 
     async def choose_repository(self, query) -> AbstractRepository:
-        raise AllRepositoriesTriedError
+        if isinstance(query, queries.KeywordQuery):
+            rep_pref = self.query_repository_preferences["KeywordQuery"]
+        elif isinstance(query, queries.JournalTimeIntervalQuery):
+            rep_pref = self.query_repository_preferences[
+                "JournalTimeIntervalQuery"]
+        elif isinstance(query, queries.DoiQuery):
+            rep_pref = self.query_repository_preferences["DOIQuery"]
+        else:
+            raise Exception("Unknown Query Type")
+
+        scheduling_info = query.get_scheduling_information()
+        possible_repositories = [repo for repo in rep_pref
+                                 if repo not in scheduling_info]
+        if len(possible_repositories) == 0:
+            raise AllRepositoriesTriedError()
+
+        repo = possible_repositories[0]
+        await self.wait_until_repository_available(repo)
+        self._query_counter.register_new_request(repo)
+        query.store_scheduling_information(repo)
+
+        return self.repo_identifier_repo_map[repo]()
 
     async def handle_query(self, query: AbstractQuery, session):
         try:
