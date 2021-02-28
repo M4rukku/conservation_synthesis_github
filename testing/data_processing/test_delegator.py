@@ -5,7 +5,8 @@ import time
 from sources.data_processing.query_delegator import QueryCounter, \
     QueryDelegator, TerminationFlag, TerminationTimeoutFlag
 from sources.data_processing.async_mp_queue import AsyncMPQueue
-from sources.data_processing.queries import AbstractQuery
+from sources.data_processing.queries import AbstractQuery, KeywordQuery, \
+    JournalTimeIntervalQuery, DoiQuery
 
 
 class TestCounter:
@@ -80,7 +81,7 @@ class TestDelegator:
         return [TestDelegator.MockEmptyQuery(),
                 TestDelegator.MockEmptyQuery(),
                 TestDelegator.MockEmptyQuery(),
-                TerminationFlag
+                TerminationFlag()
                 ]
 
     def test_delegator_terminates(self, mock_empty_handler_delegator,
@@ -90,3 +91,33 @@ class TestDelegator:
             delegator._query_delegation_queue.put(input)
 
         event_loop.run_until_complete(delegator.process_queries())
+
+    @pytest.fixture
+    def real_delegator(self):
+        return QueryDelegator(AsyncMPQueue(), AsyncMPQueue())
+
+    @pytest.fixture
+    def sample_query(self):
+        return \
+            [KeywordQuery(
+                1,
+                authors=["H. John", "B. Birk"],
+                title=r"Ecological palaeoecology and conservation biology: controversies, challenges, and compromises",
+                journal_name=None,
+                doi="10.1080/21513732.2012.701667",
+                start_date=None,
+                end_date=None,
+            ),
+                TerminationFlag()]
+
+    def test_delegator_returns_response(self, real_delegator, sample_query,
+                                        event_loop):
+        delegator = real_delegator
+        query = sample_query
+
+        for input in sample_query:
+            delegator._query_delegation_queue.put(input)
+
+        event_loop.run_until_complete(delegator.process_queries())
+
+        print(delegator._response_queue.get_nowait())

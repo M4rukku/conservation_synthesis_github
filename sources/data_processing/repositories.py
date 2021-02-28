@@ -346,6 +346,9 @@ class CrossrefRepository(AbstractRepository):
                     query_id=query.query_id, doi=query.doi_to_query
                 )
             )
+        elif isinstance(query, queries.JournalTimeIntervalQuery):
+            return self._execute_journal_time_interval_query(query)
+
         else:
             raise NotImplementedError()
 
@@ -461,6 +464,9 @@ class CrossrefRepository(AbstractRepository):
                 return response[0]
         else:
             return response
+
+    def _execute_journal_time_interval_query(self, query):
+        pass
 
 
 class CoreRepository(AbstractRepository):

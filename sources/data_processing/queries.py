@@ -56,6 +56,10 @@ class FailedQueryResponse(Response):
     def __init__(self, query_id):
         super().__init__(query_id, None)
 
+class JournalDaterangeResponse(Response):
+    def __init__(self, query_id: int, all_articles: list)
+        self.query_id = query_id
+        self.all_articles = all_articles
 
 # Interface Definition
 ################################################################################
