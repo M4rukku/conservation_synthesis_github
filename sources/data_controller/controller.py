@@ -1,7 +1,9 @@
 import math
 import threading
 
-from sources.data_processing.queries import ISSNTimeIntervalQuery
+from sources.data_processing.paper_scraper_api import PaperScraper
+from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
+    JournalDaterangeResponse, FailedQueryResponse
 from sources.databases.article_data_db import MariaRepositoryAPI
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation, \
@@ -108,14 +110,36 @@ class QueryDispatcher:
             for rnge in ranges:
                 delta = rnge.end_date - rnge.start_date
                 days = delta.days
-                #SPLIT
+                # SPLIT INTO BLOCKS OF AT MOST 3 months
                 count = 0
                 split = int(math.ceil(days / 90.0))
                 step = days / split
-                while count < days:
+
+                while True:
+                    start = rnge.start_date + count * step
+                    end = min(rnge.start_date + (count + 1) * step,
+                              rnge.end_date)
+
                     queries.append(
-                        ISSNTimeIntervalQuery(query_id, issn, rnge.start_date,
-                                              rnge.start_date + step))
+                        ISSNTimeIntervalQuery(query_id, issn, start, end))
                     query_id = query_id + 1
 
-        all_queries =
+                    count = count + 1
+                    if end >= rnge.end_date:
+                        break
+
+            # ALL QUERIES TO DELEGATE!
+
+            with PaperScraper() as ps:
+                for query in queries:
+                    ps.delegate_query(query)
+                while True:
+                    response = ps.poll_response()
+
+
+                    if isinstance(response, FailedQueryResponse):
+                        continue
+                    elif isinstance(response, JournalDaterangeResponse):
+                        pass
+                    elif isinstance(response, Response):
+                        pass
