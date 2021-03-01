@@ -1,0 +1,15 @@
+.nav-link:active {
+    color: #B3C200 !important;
+}
+
+.nav-link {
+    color: white !important;
+}
+
+a:hover {
+    color: #B3C200 !important;
+}
+
+h2 {
+    margin-top: 20px !important;
+}
