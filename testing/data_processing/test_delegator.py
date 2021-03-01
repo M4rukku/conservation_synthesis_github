@@ -1,12 +1,12 @@
-import pytest
 import asyncio
 import time
 
-from sources.data_processing.query_delegator import QueryCounter, \
-    QueryDelegator, TerminationFlag, TerminationTimeoutFlag
+import pytest
+
 from sources.data_processing.async_mp_queue import AsyncMPQueue
-from sources.data_processing.queries import AbstractQuery, KeywordQuery, \
-    JournalTimeIntervalQuery, DoiQuery
+from sources.data_processing.queries import AbstractQuery, KeywordQuery
+from sources.data_processing.query_delegator import QueryCounter, \
+    QueryDelegator, TerminationFlag
 
 
 class TestCounter:

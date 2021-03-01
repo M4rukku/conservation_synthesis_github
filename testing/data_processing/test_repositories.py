@@ -1,9 +1,12 @@
 import asyncio
-import pytest
+from datetime import date
+
 import aiohttp
+import pytest
 
 from sources.data_processing import queries, repositories
-from sources.data_processing.queries import KeywordQuery
+from sources.data_processing.queries import KeywordQuery, \
+    ISSNTimeIntervalQuery
 from sources.data_processing.repositories import (
     OpenAireRepository,
     DataNotFoundError,
@@ -68,7 +71,7 @@ class TestCrossref:
             )
 
     def test_failing_kw_query(
-        self, event_loop, failing_kw_query, crossref_repo
+            self, event_loop, failing_kw_query, crossref_repo
     ):
         with pytest.raises(DataNotFoundError):
             event_loop.run_until_complete(
@@ -84,10 +87,10 @@ class TestCrossref:
 
         for response, (doi, title) in zip(responses, list_doi_title):
             assert (
-                repositories.strings_approx_equal(
-                    response.metadata.title, title
-                )
-                == True
+                    repositories.strings_approx_equal(
+                        response.metadata.title, title
+                    )
+                    == True
             )
 
     def test_kw_query(self, event_loop, kw_query, crossref_repo):
@@ -95,6 +98,23 @@ class TestCrossref:
             crossref_repo.execute_query(kw_query)
         )
         assert response.metadata.doi == "10.1080/21513732.2012.701667"
+
+    ##### Test Journal Time INterval Query
+    @pytest.fixture
+    def sample_journal_query(self):
+        return ISSNTimeIntervalQuery(0,
+                                    "1420 - 9101",
+                                     date(2018, 1, 1),
+                                     date(2019, 1, 1),
+                                    )
+
+    def test_query_has_correct_response(self, event_loop,
+                                        sample_journal_query,
+                                        crossref_repo):
+        response = event_loop.run_until_complete(
+            crossref_repo.execute_query(sample_journal_query)
+        )
+        assert len(response.all_articles) == 22
 
 
 class TestOpenAire:
@@ -171,8 +191,8 @@ class TestOpenAire:
         print(response.metadata)
 
         assert (
-            response.metadata.title
-            == "Ecological palaeoecology and conservation biology: controversies, challenges, and compromises"
+                response.metadata.title
+                == "Ecological palaeoecology and conservation biology: controversies, challenges, and compromises"
         )
 
         assert " ".join(response.metadata.authors) == "H. John B. Birks"
@@ -189,10 +209,10 @@ class TestOpenAire:
 
         for response, (doi, title) in zip(responses, list_doi_title):
             assert (
-                repositories.strings_approx_equal(
-                    response.metadata.title, title
-                )
-                == True
+                    repositories.strings_approx_equal(
+                        response.metadata.title, title
+                    )
+                    == True
             )
 
     def test_failing_doi_query(self, event_loop, failing_query, oa_repo):
@@ -204,7 +224,7 @@ class TestOpenAire:
             )
 
     def test_incorrect_title_query(
-        self, event_loop, title_that_does_not_exist_query, oa_repo
+            self, event_loop, title_that_does_not_exist_query, oa_repo
     ):
         with pytest.raises(DataNotFoundError):
             event_loop.run_until_complete(

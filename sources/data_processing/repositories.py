@@ -48,6 +48,7 @@ class AbstractRepository(metaclass=abc.ABCMeta):
     ) -> queries.Response:
         raise NotImplementedError("Must declare how queries are handled!")
 
+
 # Concrete Repositories
 ######################################################################################################
 
@@ -342,7 +343,7 @@ class CrossrefRepository(AbstractRepository):
                     query_id=query.query_id, doi=query.doi_to_query
                 )
             )
-        elif isinstance(query, queries.JournalTimeIntervalQuery):
+        elif isinstance(query, queries.ISSNTimeIntervalQuery):
             return self._execute_journal_time_interval_query(query)
 
         else:
@@ -360,7 +361,7 @@ class CrossrefRepository(AbstractRepository):
     def _map_response_item_to_metadata(self, item):
         return queries.ArticleMetadata(
             **{
-                "title": item.get("title")[0],
+                "title": None if "title" not in item else item.get("title")[0],
                 "authors": None
                 if "author" not in item
                 else [
@@ -461,27 +462,26 @@ class CrossrefRepository(AbstractRepository):
         else:
             return response
 
-    def _execute_journal_time_interval_query(self, query: queries.JournalTimeIntervalQuery):
+    def _execute_journal_time_interval_query(self,
+                                             query: queries.ISSNTimeIntervalQuery):
         cr = Crossref(mailto=self._polite_pool_mail)
         to_select = [
-                    "abstract",
-                    "title",
-                    "original-title",
-                    "issue",
-                    "short-title",
-                    "DOI",
-                    "issued",
-                    "volume",
-                    "author",
-                    "URL",
-                    "ISSN",
-                    "publisher",
-                ]
+            "abstract",
+            "title",
+            "original-title",
+            "issue",
+            "short-title",
+            "DOI",
+            "issued",
+            "volume",
+            "author",
+            "URL",
+            "ISSN",
+            "publisher",
+        ]
         kwargs = {}
         if query.issn is not None:
-            kwargs["ids"] = query.issn
-        if query.journal_name is not None:
-            kwargs["query"] = query.journal_name
+            kwargs["ids"] = [query.issn]
 
         filters = {}
         if query.start_interval_date is not None:
@@ -490,10 +490,15 @@ class CrossrefRepository(AbstractRepository):
             filters["until-pub-date"] = query.end_interval_date.isoformat()
 
         response = cr.journals(
-            limit=100, **kwargs, works = True, select=to_select,
+            limit=1000, **kwargs, works=True, select=to_select,
             filter=filters)
 
-        return response
+        articles = response["message"]["items"]
+
+        return queries.JournalDaterangeResponse(
+            query.query_id, [self._map_response_item_to_metadata(article)
+                             for article in articles])
+
 
 class CoreRepository(AbstractRepository):
     api_key = "Bb6GprzvsKnLSFxlimUhP1XaJfwo4Ruc"

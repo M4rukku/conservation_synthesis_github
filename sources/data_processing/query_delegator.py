@@ -100,7 +100,7 @@ class QueryDelegator:
     query_repository_preferences = \
         {"KeywordQuery": ["openaire", "CORE", "crossref"],
          "DOIQuery": ["openaire", "CORE", "crossref"],
-         "JournalTimeIntervalQuery": ["crossref", "openaire", "CORE"]}
+         "JournalTimeIntervalQuery": ["crossref"]}
 
     async def wait_until_repository_available(self, repo_identifier):
         while (self._query_counter.get_open_connections_for_repo(
@@ -113,7 +113,7 @@ class QueryDelegator:
     async def choose_repository(self, query) -> AbstractRepository:
         if isinstance(query, queries.KeywordQuery):
             rep_pref = self.query_repository_preferences["KeywordQuery"]
-        elif isinstance(query, queries.JournalTimeIntervalQuery):
+        elif isinstance(query, queries.ISSNTimeIntervalQuery):
             rep_pref = self.query_repository_preferences[
                 "JournalTimeIntervalQuery"]
         elif isinstance(query, queries.DoiQuery):

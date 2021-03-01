@@ -1,4 +1,5 @@
 import pytest
+
 from sources.data_processing.queries import KeywordQuery
 
 
@@ -23,3 +24,4 @@ class TestKeywordQuery:
             sample_query.title
             == r"Ecological palaeoecology and conservation biology: controversies, challenges, and compromises"
         )
+
