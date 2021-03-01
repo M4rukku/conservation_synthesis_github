@@ -1,12 +1,12 @@
-from concurrent.futures.thread import ThreadPoolExecutor
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process
+import queue
+import typing
+from multiprocessing import Process
+
+from sources.data_processing.async_mp_queue import AsyncMPQueue
+from sources.data_processing.queries import AbstractQuery, Response
 from sources.data_processing.query_delegator import run_delegator, \
     TerminationFlag
-from sources.data_processing.queries import AbstractQuery, Response
-from sources.data_processing.async_mp_queue import AsyncMPQueue
-import typing
-import queue
-import asyncio
 
 
 class PaperScraper:
@@ -20,8 +20,8 @@ class PaperScraper:
     AbstractQuery from queries.py."""
 
     def __init__(self):
-        self._delegation_queue: AsyncMPQueue[AbstractQuery] = None
-        self._response_queue: AsyncMPQueue[Response] = None
+        self._delegation_queue: AsyncMPQueue = None
+        self._response_queue: AsyncMPQueue = None
         self._process = None  # Use with instead
 
     def delegate_query(self, query: AbstractQuery):
@@ -50,11 +50,6 @@ class PaperScraper:
                                 name="paper_scraper_runner")
 
     def terminate(self):
-        while True:
-            try:
-                tmp = self._delegation_queue.get_nowait()
-            except queue.Empty as e:
-                break
         self._delegation_queue.put(TerminationFlag())
         self._process.join()
         self._process.close()
