@@ -1,6 +1,7 @@
-from dataclasses import dataclass, asdict
+import datetime
 import json
 import textwrap
+from dataclasses import dataclass, asdict
 
 
 @dataclass
@@ -45,8 +46,12 @@ class MariaRepositoryAPI:
     def __init__(self):
         pass
 
-    def general_query(self, journal_name: str, start_date: str, end_date:
-    str, relevant: bool = None, classification=None) -> list[DBArticleMetadata]:
+    def general_query(self,
+                      journal_name: str,
+                      start_date: datetime.date,
+                      end_date: datetime.date,
+                      relevant: bool = None,
+                      classification=None) -> list[DBArticleMetadata]:
         pass
 
     def store_article(self, metadata: DBArticleMetadata):

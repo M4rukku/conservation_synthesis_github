@@ -31,6 +31,9 @@ class Daterange:
     def __hash__(self):
         return hash((self.start_date, self.end_date))
 
+    def __str__(self):
+        return f"Daterange: From - {self.start_date.isoformat()}, " \
+               f"To - {self.end_date.isoformat()} \n"
 
 class DaterangeUtility:
     @staticmethod
