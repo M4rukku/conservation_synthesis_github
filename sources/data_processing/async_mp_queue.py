@@ -35,9 +35,9 @@ class AsyncMTQueue:
 
     def get(self, block, timeout):
         if block:
-            self.get_blocking(timeout)
+            return self.get_blocking(timeout)
         else:
-            self.get_nowait()
+            return self.get_nowait()
 
     def get_all_available(self):
         ls = []

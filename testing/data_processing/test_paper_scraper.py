@@ -4,7 +4,7 @@ import pytest
 
 from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, \
-    KeywordQuery
+    KeywordQuery, FailedQueryResponse, JournalDaterangeResponse, Response
 
 
 class TestPaperScraper:
@@ -32,19 +32,25 @@ class TestPaperScraper:
 
     @pytest.fixture
     def failing_kw_query(self):
-        return KeywordQuery(2, title="Algae growth by shading")
+        return KeywordQuery(2, doi="a493", title="Algae growth by shading")
 
     def test_accepts_queries(self, kw_query, failing_kw_query,
                              sample_journal_query):
+        results = []
         with PaperScraper() as ps:
             ps.delegate_query(kw_query)
             ps.delegate_query(failing_kw_query)
-            #ps.delegate_query(sample_journal_query)
-            delegated = {0, 1, 2}
+            ps.delegate_query(sample_journal_query)
+            delegated = {1, 2, 0}
 
             while True:
                 result = ps.poll_response(blocking=True)
-                print(result)
-                delegated = delegated - result.query_id
+                results.append(result)
+                delegated = delegated - {result.query_id}
                 if len(delegated) == 0:
                     break
+
+        results.sort(key=lambda x: x.query_id)
+        assert isinstance(results[0], JournalDaterangeResponse)
+        assert isinstance(results[1], Response)
+        assert isinstance(results[2], FailedQueryResponse)

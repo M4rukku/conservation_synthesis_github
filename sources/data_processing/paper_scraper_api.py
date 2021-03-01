@@ -1,4 +1,3 @@
-import queue
 import typing
 from threading import Thread
 
@@ -26,18 +25,10 @@ class PaperScraper:
     def delegate_query(self, query: AbstractQuery):
         self._delegation_queue.put(query)
 
-    def poll_all_responses(self) -> typing.List[Response]:
-        responses = []
-        while True:
-            try:
-                tmp = self._response_queue.get_nowait()
-                responses.append(tmp)
-            except queue.Empty as e:
-                break
+    def poll_all_available_responses(self) -> typing.List[Response]:
+        return self._response_queue.get_all_available()
 
-        return responses
-
-    def poll_response(self, blocking=False, timeout=None) -> Response:
+    def poll_response(self, blocking=True, timeout=None) -> Response:
         return self._response_queue.get(block=blocking, timeout=timeout)
 
     def initialise(self):
@@ -52,7 +43,6 @@ class PaperScraper:
     def terminate(self):
         self._delegation_queue.put(TerminationFlag())
         self._thread.join()
-        self._thread.close()
 
     def __enter__(self):
         self.initialise()
