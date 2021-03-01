@@ -4,7 +4,8 @@ import time
 import pytest
 
 from sources.data_processing.async_mp_queue import AsyncMPQueue
-from sources.data_processing.queries import AbstractQuery, KeywordQuery
+from sources.data_processing.queries import AbstractQuery, KeywordQuery, \
+    FailedQueryResponse
 from sources.data_processing.query_delegator import QueryCounter, \
     QueryDelegator, TerminationFlag
 
@@ -121,3 +122,20 @@ class TestDelegator:
         event_loop.run_until_complete(delegator.process_queries())
 
         print(delegator._response_queue.get_nowait().metadata)
+
+    @pytest.fixture
+    def failing_kw_query(self):
+        return [KeywordQuery(2, doi="3297", title="Algae growth by shading"),
+                TerminationFlag()]
+
+    def test_delegator_failing_query(self, real_delegator, failing_kw_query,
+                                        event_loop):
+        delegator = real_delegator
+        query = failing_kw_query
+
+        for input in failing_kw_query:
+            delegator._query_delegation_queue.put(input)
+
+        event_loop.run_until_complete(delegator.process_queries())
+
+        assert isinstance(delegator._response_queue.get_nowait(), FailedQueryResponse)

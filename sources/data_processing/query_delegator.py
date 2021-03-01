@@ -163,8 +163,9 @@ class QueryDelegator:
                     print("Terminated Loop")
                     timeout = None
                     self._terminated = True
-                    await asyncio.wait(asyncio.all_tasks() - initial_tasks,
-                                       timeout=timeout)
+                    if len(asyncio.all_tasks() - initial_tasks) > 0:
+                        await asyncio.wait(asyncio.all_tasks() - initial_tasks,
+                                           timeout=timeout)
                     if self._query_delegation_queue.qsize() == 0:
                         break
 
@@ -180,4 +181,4 @@ class QueryDelegator:
 
             if len(asyncio.all_tasks() - initial_tasks) > 0:
                 await asyncio.wait(asyncio.all_tasks() - initial_tasks,
-                               timeout=timeout)
+                                   timeout=timeout)

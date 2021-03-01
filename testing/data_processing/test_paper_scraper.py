@@ -39,7 +39,7 @@ class TestPaperScraper:
         with PaperScraper() as ps:
             ps.delegate_query(kw_query)
             ps.delegate_query(failing_kw_query)
-            ps.delegate_query(sample_journal_query)
+            #ps.delegate_query(sample_journal_query)
             delegated = {0, 1, 2}
             while True:
                 result = ps.poll_response(True)
