@@ -1,4 +1,6 @@
+import datetime
 from dataclasses import dataclass
+
 from sources.databases.article_data_db import DBArticleMetadata
 
 classification_types = ["Amphibians",
@@ -36,8 +38,8 @@ classification_types = ["Amphibians",
 @dataclass
 class UserQueryInformation:
     journals_to_query: list[str]
-    start_date_range: str
-    end_date_range: str
+    start_date_range: datetime.date
+    end_date_range: datetime.date
     relevant_only: bool = None
     classification_restriction: str = None
 
@@ -45,5 +47,5 @@ class UserQueryInformation:
 class UserQueryResponse:
     def __init__(self, processed_data: list[DBArticleMetadata], message=
     None):
-        self.processed_data = processed_data
-        self.message = message
+        self.processed_data = processed_data # Data from Database
+        self.message = message # What still needs to be gathered (intervals)
