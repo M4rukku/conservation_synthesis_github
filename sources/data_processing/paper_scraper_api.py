@@ -1,9 +1,8 @@
-from multiprocessing import Process
 import queue
 import typing
-from multiprocessing import Process
+from threading import Thread
 
-from sources.data_processing.async_mp_queue import AsyncMPQueue
+from sources.data_processing.async_mp_queue import AsyncMTQueue
 from sources.data_processing.queries import AbstractQuery, Response
 from sources.data_processing.query_delegator import run_delegator, \
     TerminationFlag
@@ -20,9 +19,9 @@ class PaperScraper:
     AbstractQuery from queries.py."""
 
     def __init__(self):
-        self._delegation_queue: AsyncMPQueue = None
-        self._response_queue: AsyncMPQueue = None
-        self._process = None  # Use with instead
+        self._delegation_queue: AsyncMTQueue = None
+        self._response_queue: AsyncMTQueue = None
+        self._thread = None  # Use with instead
 
     def delegate_query(self, query: AbstractQuery):
         self._delegation_queue.put(query)
@@ -42,17 +41,18 @@ class PaperScraper:
         return self._response_queue.get(block=blocking, timeout=timeout)
 
     def initialise(self):
-        self._delegation_queue: AsyncMPQueue[AbstractQuery] = AsyncMPQueue()
-        self._response_queue: AsyncMPQueue[Response] = AsyncMPQueue()
-        self._process = Process(target=run_delegator,
-                                args=(self._delegation_queue,
-                                      self._response_queue),
-                                name="paper_scraper_runner")
+        self._delegation_queue: AsyncMTQueue[AbstractQuery] = AsyncMTQueue()
+        self._response_queue: AsyncMTQueue[Response] = AsyncMTQueue()
+        self._thread = Thread(target=run_delegator,
+                              args=(self._delegation_queue,
+                                    self._response_queue),
+                              name="paper_scraper_runner")
+        self._thread.start()
 
     def terminate(self):
         self._delegation_queue.put(TerminationFlag())
-        self._process.join()
-        self._process.close()
+        self._thread.join()
+        self._thread.close()
 
     def __enter__(self):
         self.initialise()

@@ -1,11 +1,12 @@
 import asyncio
+import threading
 import time
 
 import pytest
 
-from sources.data_processing.async_mp_queue import AsyncMPQueue
+from sources.data_processing.async_mp_queue import AsyncMTQueue
 from sources.data_processing.queries import AbstractQuery, KeywordQuery, \
-    FailedQueryResponse
+    FailedQueryResponse, Response
 from sources.data_processing.query_delegator import QueryCounter, \
     QueryDelegator, TerminationFlag
 
@@ -69,7 +70,7 @@ class TestDelegator:
 
     @pytest.fixture
     def mock_empty_handler_delegator(self):
-        delegator = QueryDelegator(AsyncMPQueue(), AsyncMPQueue())
+        delegator = QueryDelegator(AsyncMTQueue(), AsyncMTQueue())
 
         async def mock_handler(q, s):
             await asyncio.sleep(5)
@@ -95,7 +96,7 @@ class TestDelegator:
 
     @pytest.fixture
     def real_delegator(self):
-        return QueryDelegator(AsyncMPQueue(), AsyncMPQueue())
+        return QueryDelegator(AsyncMTQueue(), AsyncMTQueue())
 
     @pytest.fixture
     def sample_query(self):
@@ -121,7 +122,7 @@ class TestDelegator:
 
         event_loop.run_until_complete(delegator.process_queries())
 
-        print(delegator._response_queue.get_nowait().metadata)
+        assert isinstance(delegator._response_queue.get_nowait(), Response)
 
     @pytest.fixture
     def failing_kw_query(self):
@@ -129,13 +130,34 @@ class TestDelegator:
                 TerminationFlag()]
 
     def test_delegator_failing_query(self, real_delegator, failing_kw_query,
-                                        event_loop):
+                                     event_loop):
         delegator = real_delegator
         query = failing_kw_query
 
-        for input in failing_kw_query:
-            delegator._query_delegation_queue.put(input)
+        for ip in failing_kw_query:
+            delegator._query_delegation_queue.put(ip)
 
         event_loop.run_until_complete(delegator.process_queries())
 
-        assert isinstance(delegator._response_queue.get_nowait(), FailedQueryResponse)
+        assert isinstance(delegator._response_queue.get_nowait(),
+                          FailedQueryResponse)
+
+    def test_multithreaded(self, sample_query, event_loop):
+
+        query = sample_query
+        del_q = AsyncMTQueue()
+        resp_q = AsyncMTQueue()
+
+        def run_in_delegator(del_qu, resp_qu):
+            delegator = QueryDelegator(del_qu, resp_qu)
+
+            event_loop.run_until_complete(delegator.process_queries())
+            event_loop.close()
+
+        thread = threading.Thread(target=run_in_delegator, args=(del_q,resp_q))
+        thread.start()
+        for ip in query:
+            del_q.put(ip)
+        thread.join()
+
+        assert isinstance(resp_q.get_nowait(), Response)

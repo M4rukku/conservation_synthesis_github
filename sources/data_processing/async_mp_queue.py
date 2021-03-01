@@ -1,9 +1,9 @@
-from multiprocessing import Queue
 import asyncio
 import functools
+from queue import Queue
 
 
-class AsyncMPQueue:
+class AsyncMTQueue:
     def __init__(self, max_size=0):
         self._queue = Queue(maxsize=max_size)
 

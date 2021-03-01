@@ -4,7 +4,7 @@ from threading import Timer
 
 import aiohttp
 
-from sources.data_processing.async_mp_queue import AsyncMPQueue
+from sources.data_processing.async_mp_queue import AsyncMTQueue
 from sources.data_processing.queries import AbstractQuery, FailedQueryResponse
 from . import queries
 from .repositories import AbstractRepository, DataNotFoundError, \
@@ -34,8 +34,8 @@ class AllRepositoriesTriedError(Exception):
     pass
 
 
-def run_delegator(query_delegation_queue: AsyncMPQueue,
-                  response_queue: AsyncMPQueue):
+def run_delegator(query_delegation_queue: AsyncMTQueue,
+                  response_queue: AsyncMTQueue):
     delegator = QueryDelegator(query_delegation_queue,
                                response_queue)
     loop = asyncio.get_event_loop()
@@ -79,8 +79,8 @@ class QueryCounter:
 class QueryDelegator:
 
     def __init__(self,
-                 query_delegation_queue: AsyncMPQueue,
-                 response_queue: AsyncMPQueue):
+                 query_delegation_queue: AsyncMTQueue,
+                 response_queue: AsyncMTQueue):
         self._query_delegation_queue = query_delegation_queue
         self._response_queue = response_queue
         self._query_counter = QueryCounter()
