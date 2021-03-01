@@ -32,6 +32,36 @@ class Daterange:
         return hash((self.start_date, self.end_date))
 
 
+class DaterangeUtility:
+    @staticmethod
+    def intersects(date1: Daterange, date2: Daterange):
+        return (date1.start_date <= date2.start_date <= date1.end_date) or \
+               (date2.start_date <= date1.start_date <= date2.end_date)
+
+    @staticmethod
+    def remove_interval_from_range(to_remove: Daterange, range: Daterange) -> \
+            list:
+        """If there is an intersection, this function will remove to_remove
+        from range.
+        """
+
+        # 4 Cases -- R... Remove, D... Daterange
+        # R..D..R..D; D..R..R..D; D..R..D..R; R..D..D..R
+        if to_remove.start_date <= range.start_date:
+            # R..D..R..D or R..D..D..R
+            if to_remove.end_date < range.end_date:
+                return [Daterange(to_remove.end_date, range.end_date)]
+            else:
+                return []
+        else:  # D..R..R..D; D..R..D..R
+            if to_remove.end_date < range.end_date:
+                # D..R..R..D
+                return [Daterange(range.start_date, to_remove.start_date),
+                        Daterange(to_remove.end_date, range.end_date)]
+            else:
+                return [Daterange(range.start_date, to_remove.start_date)]
+
+
 class PrevQueryInformation:
     document_path = Path(__file__).parent / "file_databases" / \
                     "prev_journal_query_information.json"
