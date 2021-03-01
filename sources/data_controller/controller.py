@@ -1,15 +1,20 @@
+import itertools
 import math
 import threading
 
+from sources.data_processing.abstract_webscraping import get_abstract_from_doi
 from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
-    JournalDaterangeResponse, FailedQueryResponse
-from sources.databases.article_data_db import MariaRepositoryAPI
+    JournalDaterangeResponse, FailedQueryResponse, DoiQuery, KeywordQuery, \
+    ArticleMetadata
+from sources.databases.article_data_db import MariaRepositoryAPI, \
+    DBArticleMetadata
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation, \
     Daterange, DaterangeUtility
 from sources.frontend.user_queries import UserQueryResponse, \
     UserQueryInformation
+from sources.ml_model.ml_model import MlModelWrapper
 
 
 class InvalidTimeRangeError(Exception):
@@ -49,6 +54,23 @@ def get_unknown_date_ranges(query: UserQueryInformation):
         query_ranges[name] = range
 
     return query_ranges
+
+
+def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
+    return DBArticleMetadata(title=article.title,
+                             authors=article.authors,
+                             doi=article.doi,
+                             publication_date=article.publication_date,
+                             abstract=article.abstract,
+                             repo_identifier=article.repo_identifier,
+                             language=article.language,
+                             publisher=article.publisher,
+                             journal_name=article.journal_name,
+                             journal_volume=article.journal_volume,
+                             journal_issue=article.journal_issue,
+                             issn=article.issn,
+                             url=f"https://doi.org/{article.doi}",
+                             relevant=relevant)
 
 
 class QueryDispatcher:
@@ -103,8 +125,9 @@ class QueryDispatcher:
                      for name in query.journals_to_query}
 
         queries = []
-        query_id = 0
+        query_id = itertools.count()
 
+        # Convert the User Query into PaperSCraper Queries
         for name, ranges in unknown_date_ranges:
             issn = issns[name]
             for rnge in ranges:
@@ -121,25 +144,68 @@ class QueryDispatcher:
                               rnge.end_date)
 
                     queries.append(
-                        ISSNTimeIntervalQuery(query_id, issn, start, end))
-                    query_id = query_id + 1
+                        ISSNTimeIntervalQuery(next(query_id), issn, start, end))
 
                     count = count + 1
                     if end >= rnge.end_date:
                         break
 
-            # ALL QUERIES TO DELEGATE!
+        # DELEGATE ALL QUERIES and handle them accordingly
+        scraped_articles = []
+        with PaperScraper() as ps:
+            for query in queries:
+                ps.delegate_query(query)
+            while not ps.processed_all_queries:
+                response = ps.poll_response()
 
-            with PaperScraper() as ps:
-                for query in queries:
-                    ps.delegate_query(query)
-                while True:
-                    response = ps.poll_response()
+                if isinstance(response, FailedQueryResponse):
+                    continue
+                elif isinstance(response, JournalDaterangeResponse):
+                    articles_w_abstract = \
+                        [article for article in response.all_articles if
+                         article.abstract is not None and article.abstract != ""]
+                    articles_wo_abstract = \
+                        [article for article in response.all_articles if
+                         article.abstract is None or article.abstract == ""]
 
+                    scraped_articles.extend(articles_w_abstract)
 
-                    if isinstance(response, FailedQueryResponse):
-                        continue
-                    elif isinstance(response, JournalDaterangeResponse):
-                        pass
-                    elif isinstance(response, Response):
-                        pass
+                    for article in articles_wo_abstract:
+                        if article.doi is not None and article.doi != "":
+                            ps.delegate_query(
+                                DoiQuery(next(query_id), article.doi))
+                        else:
+                            ps.delegate_query(
+                                KeywordQuery(next(query_id),
+                                             article.authors,
+                                             article.title,
+                                             article.journal_name))
+
+                elif isinstance(response, Response):
+                    if response.metadata.abstract is not None and \
+                            response.metadata.abstract != "":
+                        scraped_articles.append(response.metadata)
+                    else:
+                        doi = response.metadata.doi
+                        if article.doi is not None and article.doi != "":
+                            abstract = get_abstract_from_doi(doi)
+                            response.metadata.abstract = abstract
+                            scraped_articles.append(response.metadata)
+                        else:
+                            scraped_articles.append(response.metadata)
+
+        # Now that we have all queries use the ML Model to judge them and
+        # store them as Article_DB_Format
+        scraped_articles_db_format = []
+        classifier = MlModelWrapper()
+        for article in scraped_articles:
+            relevant = False
+            if article.abstract is not None and article.abstract != "":
+                relevant = classifier.predict_article(article)
+            scraped_articles_db_format.append(
+                map_to_db_metadata(article, relevant)
+            )
+
+        with MariaRepositoryAPI() as db:
+            for article in scraped_articles_db_format:
+                db.store_article(article)
