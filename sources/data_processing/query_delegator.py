@@ -165,7 +165,7 @@ class QueryDelegator:
                     self._terminated = True
                     await asyncio.wait(asyncio.all_tasks() - initial_tasks,
                                        timeout=timeout)
-                    if self._query_delegation_queue.qsize() ==0:
+                    if self._query_delegation_queue.qsize() == 0:
                         break
 
                     self._query_delegation_queue.put(TerminationFlag())
@@ -178,5 +178,6 @@ class QueryDelegator:
 
                 asyncio.create_task(self.handle_query(query, session))
 
-            await asyncio.wait(asyncio.all_tasks() - initial_tasks,
+            if len(asyncio.all_tasks() - initial_tasks) > 0:
+                await asyncio.wait(asyncio.all_tasks() - initial_tasks,
                                timeout=timeout)

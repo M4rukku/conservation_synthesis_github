@@ -120,4 +120,4 @@ class TestDelegator:
 
         event_loop.run_until_complete(delegator.process_queries())
 
-        print(delegator._response_queue.get_nowait())
+        print(delegator._response_queue.get_nowait().metadata)
