@@ -38,10 +38,10 @@ def run_delegator(query_delegation_queue: AsyncMTQueue,
                   response_queue: AsyncMTQueue):
     delegator = QueryDelegator(query_delegation_queue,
                                response_queue)
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(delegator.process_queries())
-    loop.close()
-
+    event_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(event_loop)
+    event_loop.run_until_complete(delegator.process_queries())
+    event_loop.close()
 
 class QueryCounter:
     """Query Counter is a simple Utility tool that keeps track of the number

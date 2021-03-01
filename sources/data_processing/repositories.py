@@ -526,6 +526,12 @@ class CoreRepository(AbstractRepository):
             response = json.loads(await r.text())
             metadata = self._response_to_metadata(response)
             return queries.Response(query_id=query.query_id, metadata=metadata)
+
+        elif isinstance(query, queries.DoiQuery):
+            kw_query = queries.KeywordQuery(
+                query_id=query.query_id, doi=query.doi_to_query
+            )
+            return await self.execute_query(kw_query, session)
         else:
             raise NotImplementedError(
                 f"{self.get_identifier()} does not support the query type {type(query)}"

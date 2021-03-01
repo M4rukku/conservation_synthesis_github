@@ -41,8 +41,9 @@ class TestPaperScraper:
             ps.delegate_query(failing_kw_query)
             #ps.delegate_query(sample_journal_query)
             delegated = {0, 1, 2}
+
             while True:
-                result = ps.poll_response(True)
+                result = ps.poll_response(blocking=True)
                 print(result)
                 delegated = delegated - result.query_id
                 if len(delegated) == 0:

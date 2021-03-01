@@ -6,9 +6,10 @@ import pytest
 
 from sources.data_processing.async_mp_queue import AsyncMTQueue
 from sources.data_processing.queries import AbstractQuery, KeywordQuery, \
-    FailedQueryResponse, Response
+    FailedQueryResponse, Response, DoiQuery
 from sources.data_processing.query_delegator import QueryCounter, \
-    QueryDelegator, TerminationFlag
+    QueryDelegator, TerminationFlag, run_delegator
+from sources.data_processing.repositories import strings_approx_equal
 
 
 class TestCounter:
@@ -148,16 +149,81 @@ class TestDelegator:
         del_q = AsyncMTQueue()
         resp_q = AsyncMTQueue()
 
-        def run_in_delegator(del_qu, resp_qu):
+        def run_in_delegator(loop, del_qu, resp_qu):
             delegator = QueryDelegator(del_qu, resp_qu)
+            # asyncio.set_event_loop(loop)
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(delegator.process_queries())
+            loop.close()
 
-            event_loop.run_until_complete(delegator.process_queries())
-            event_loop.close()
-
-        thread = threading.Thread(target=run_in_delegator, args=(del_q,resp_q))
+        lp = asyncio.get_event_loop()
+        thread = threading.Thread(target=run_in_delegator, args=(lp, del_q,
+                                                                 resp_q))
         thread.start()
         for ip in query:
             del_q.put(ip)
         thread.join()
 
         assert isinstance(resp_q.get_nowait(), Response)
+
+    def test_run_delegator(self, sample_query):
+        del_q = AsyncMTQueue()
+        resp_q = AsyncMTQueue()
+        thread = threading.Thread(target=run_delegator,
+                                  args=(del_q, resp_q))
+        thread.start()
+        for ip in sample_query:
+            del_q.put(ip)
+        thread.join()
+        assert isinstance(resp_q.get_nowait(), Response)
+
+    @pytest.fixture
+    def list_doi_title(self):
+        return [
+            (
+                "10.1111/rec.12476",  # "1061-2971",
+                "Vegetation structure, species life span, and exotic status elucidate plant succession in a limestone quarry reclamation",
+            ),
+            (
+                "10.1111/1365-2664.13471",  # "0021-8901",
+                "Combined effects of grazing management and climate on semi-arid steppes: Hysteresis dynamics prevent recovery of degraded rangelands",
+            ),
+            (
+                "10.1111/1365-2664.13315",
+                "Conventional methods for enhancing connectivity in conservation planning do not always maintain gene flow",
+            ),
+            (
+                "10.1007/s12237-014-9789-2",
+                "Trapping of Rhizophora mangle Propagules by Coexisting Early Successional Species",
+            ),
+        ]
+
+    def test_delegator_multiple_queries(self, list_doi_title, sample_query):
+        del_q = AsyncMTQueue()
+        resp_q = AsyncMTQueue()
+        thread = threading.Thread(target=run_delegator,
+                                  args=(del_q, resp_q))
+        thread.start()
+        c = 1
+
+        def cnt():
+            nonlocal c
+            c = c + 1
+            return c
+
+        qu = [DoiQuery(cnt(), doi) for doi, title in list_doi_title]
+        for q in qu:
+            del_q.put(q)
+        for ip in sample_query:
+            del_q.put(ip)
+
+        thread.join()
+
+        responses = resp_q.get_all_available()
+        responses.sort(key=lambda x: x.query_id)
+
+        assert len(responses) == 5
+        for i in range(1, 5):
+            assert strings_approx_equal(responses[i].metadata.title,
+                                        list_doi_title[i-1][1])
+

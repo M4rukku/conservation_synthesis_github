@@ -41,8 +41,8 @@ class PaperScraper:
         return self._response_queue.get(block=blocking, timeout=timeout)
 
     def initialise(self):
-        self._delegation_queue: AsyncMTQueue[AbstractQuery] = AsyncMTQueue()
-        self._response_queue: AsyncMTQueue[Response] = AsyncMTQueue()
+        self._delegation_queue: AsyncMTQueue = AsyncMTQueue()
+        self._response_queue: AsyncMTQueue = AsyncMTQueue()
         self._thread = Thread(target=run_delegator,
                               args=(self._delegation_queue,
                                     self._response_queue),
