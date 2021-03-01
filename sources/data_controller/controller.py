@@ -1,11 +1,10 @@
 from sources.data_processing.paper_scraper_api import PaperScraper
-from sources.ml_model.ml_model import MlModelWrapper
-from sources.databases.article_data_db import MariaRepositoryAPI, \
-    DBArticleMetadata
-from sources.databases.prev_query_information_db import DocumentDatabase, \
+from sources.databases.article_data_db import MariaRepositoryAPI
+from sources.databases.prev_query_information_db import PrevQueryInformation, \
     Daterange
 from sources.frontend.user_queries import UserQueryResponse, \
     UserQueryInformation
+from sources.ml_model.ml_model import MlModelWrapper
 
 
 class QueryDispatcher:
@@ -13,7 +12,7 @@ class QueryDispatcher:
         self._classifier = MlModelWrapper()
         self._article_db = MariaRepositoryAPI()
         self._paper_scraper = PaperScraper()
-        self._prev_query_data = DocumentDatabase()
+        self._prev_query_data = PrevQueryInformation()
 
     def process_query(self, query: UserQueryInformation) -> UserQueryResponse:
         """ Processes a user query instantly! Returns what is known so far,
