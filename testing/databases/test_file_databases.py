@@ -1,8 +1,8 @@
 from datetime import date
-from sources.databases.prev_query_information_db import PrevQueryInformation, \
-    Daterange
-from datetime import date
 
+import pytest
+
+from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation, \
     Daterange
 
@@ -25,3 +25,19 @@ class TestPrevQueryInformationDatabase:
         with PrevQueryInformation() as pqi:
             assert pqi.get_journal_dateranges("555666666-555") == {drA, drB}
 
+
+class TestJournalNameISSNDatabase:
+    @pytest.fixture
+    def entries(self):
+        return [("0006-3207", "biological conservation"),
+                ("0006-3657", "bird study")]
+
+    def test_name_query(self, entries):
+        with JournalNameIssnDatabase() as db:
+            for issn, name in entries:
+                assert db.get_name_from_issn(issn) == name
+
+    def test_issn_query(self, entries):
+        with JournalNameIssnDatabase() as db:
+            for issn, name in entries:
+                assert db.get_issn_from_name(name) == issn
