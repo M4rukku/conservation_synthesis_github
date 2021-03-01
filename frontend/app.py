@@ -13,3 +13,7 @@ def search():
 @app.route('/results')
 def results():
     return render_template('results.html')
+
+@app.route('/sync')
+def sync():
+    return render_template('sync.html')
