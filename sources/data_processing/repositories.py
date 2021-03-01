@@ -1,23 +1,19 @@
 import abc
+import asyncio
 import datetime
 import functools
 import json
 import re
 from collections import defaultdict
 
-import habanero
-import yaml
 import jellyfish
-
 import requests
+import yaml
+from aiohttp import ClientSession
 from habanero import Crossref
-
-import asyncio
-import aiohttp
 
 from . import queries
 from .queries import AbstractQuery
-from aiohttp import ClientSession
 
 
 # Interface Definitions
@@ -465,9 +461,39 @@ class CrossrefRepository(AbstractRepository):
         else:
             return response
 
-    def _execute_journal_time_interval_query(self, query):
-        pass
+    def _execute_journal_time_interval_query(self, query: queries.JournalTimeIntervalQuery):
+        cr = Crossref(mailto=self._polite_pool_mail)
+        to_select = [
+                    "abstract",
+                    "title",
+                    "original-title",
+                    "issue",
+                    "short-title",
+                    "DOI",
+                    "issued",
+                    "volume",
+                    "author",
+                    "URL",
+                    "ISSN",
+                    "publisher",
+                ]
+        kwargs = {}
+        if query.issn is not None:
+            kwargs["ids"] = query.issn
+        if query.journal_name is not None:
+            kwargs["query"] = query.journal_name
 
+        filters = {}
+        if query.start_interval_date is not None:
+            filters["from-pub-date"] = query.start_interval_date.isoformat()
+        if query.end_interval_date is not None:
+            filters["until-pub-date"] = query.end_interval_date.isoformat()
+
+        response = cr.journals(
+            limit=100, **kwargs, works = True, select=to_select,
+            filter=filters)
+
+        return response
 
 class CoreRepository(AbstractRepository):
     api_key = "Bb6GprzvsKnLSFxlimUhP1XaJfwo4Ruc"

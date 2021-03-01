@@ -1,14 +1,14 @@
+import asyncio
+from collections import defaultdict
+from threading import Timer
+
+import aiohttp
+
+from sources.data_processing.async_mp_queue import AsyncMPQueue
+from sources.data_processing.queries import AbstractQuery, FailedQueryResponse
 from . import queries
 from .repositories import AbstractRepository, DataNotFoundError, \
     OpenAireRepository, CrossrefRepository, CoreRepository
-import asyncio
-from sources.data_processing.queries import AbstractQuery, FailedQueryResponse, \
-    KeywordQuery
-from threading import Timer
-from sources.data_processing.async_mp_queue import AsyncMPQueue
-import functools
-import aiohttp
-from collections import defaultdict
 
 
 class TerminationFlag(queries.AbstractQuery):
@@ -47,7 +47,7 @@ class QueryCounter:
     """Query Counter is a simple Utility tool that keeps track of the number
     of active requests outgoing on different repositories.
     """
-    repo_intervals = defaultdict(lambda: 1) #WRONG
+    repo_intervals = defaultdict(lambda: 1)  # WRONG
 
     def __init__(self):
         self._active_concurrent_requests = defaultdict(lambda: 0)
@@ -91,7 +91,7 @@ class QueryDelegator:
 
     repo_identifier_repo_map = {"openaire": OpenAireRepository,
                                 "crossref": CrossrefRepository,
-                                "CORE":  CoreRepository}
+                                "CORE": CoreRepository}
 
     repo_identifier_max_conn = {"openaire": 15,
                                 "crossref": 15,
@@ -105,7 +105,7 @@ class QueryDelegator:
     async def wait_until_repository_available(self, repo_identifier):
         while (self._query_counter.get_open_connections_for_repo(
                 repo_identifier) > self.repo_identifier_max_conn[
-            repo_identifier]):
+                   repo_identifier]):
             await asyncio.sleep(0.5)
 
     # Version!
@@ -149,8 +149,6 @@ class QueryDelegator:
         except DataNotFoundError as e:
             query.store_scheduling_information(repo.get_identifier())
             self._query_delegation_queue.put(query)
-            self._query_delegation_queue.put(TerminationFlag())
-            self._terminated = False
             self._query_counter.request_completed(repo.get_identifier())
 
     async def process_queries(self):
@@ -167,6 +165,11 @@ class QueryDelegator:
                     self._terminated = True
                     await asyncio.wait(asyncio.all_tasks() - initial_tasks,
                                        timeout=timeout)
+                    if self._query_delegation_queue.qsize() ==0:
+                        break
+
+                    self._query_delegation_queue.put(TerminationFlag())
+                    self._terminated = False
                     continue
                 if isinstance(query, TerminationTimeoutFlag):
                     print("Terminated Loop Forcibly")

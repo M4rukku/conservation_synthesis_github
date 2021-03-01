@@ -1,7 +1,7 @@
 import abc
 import datetime
-import textwrap
 import json
+import textwrap
 from dataclasses import dataclass, asdict
 
 
@@ -57,7 +57,8 @@ class FailedQueryResponse(Response):
         super().__init__(query_id, None)
 
 class JournalDaterangeResponse(Response):
-    def __init__(self, query_id: int, all_articles: list)
+    def __init__(self, query_id: int, all_articles: lists):
+        super().__init__(query_id, None)
         self.query_id = query_id
         self.all_articles = all_articles
 
@@ -106,6 +107,7 @@ class JournalTimeIntervalQuery(AbstractQuery):
         self.journal_name = journal_name
         self.start_interval_date = start_interval_date
         self.end_interval_date = end_interval_date
+        self.issn = issn
 
 
 class KeywordQuery(AbstractQuery):
