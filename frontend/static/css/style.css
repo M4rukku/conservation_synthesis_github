@@ -6,10 +6,28 @@
     color: white !important;
 }
 
+.scroll {
+    width: 450px;
+    height: 400px;
+    background-color: white;
+    overflow-y: scroll;
+    text-align: left;
+    padding-left: 0px;
+}
+
 a:hover {
     color: #B3C200 !important;
 }
 
 h2 {
     margin-top: 20px !important;
+}
+
+#grid_wrapper{
+    display: flex;
+}
+#journal_selector {
+}
+#relevant_only_checkbox {
+    padding-left: 25px
 }
