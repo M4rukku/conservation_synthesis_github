@@ -14,6 +14,25 @@
         <h4>Search Criteria</h4>
         <hr>
         <form>
+            <div id="relevant_only_checkbox">
+                <input type="checkbox" id="relevant_only">
+                <label for="relevant_only">Return only Relevant
+                    Articles</label>
+                <br/>
+                <br/>
+                <label for="start_date">Query Start Date</label> <br/>
+                <input id="start_date" type="date">
+                <br/>
+                <br/>
+                <label for="end_date">Query End Date</label> <br/>
+                <input id="end_date" type="date">
+                <br/>
+                <br/>
+                <label for="submit_query">Query End Date</label> <br/>
+                <input id="submit_query" type="submit" value="Submit Query">
+                <br/>
+                <br/>
+            </div>
             <h5>Journals to Search</h5>
             <div>
                 <input type="checkbox" id="all_journals">
@@ -28,24 +47,7 @@
                         <br/>
                     {% endfor %}
                 </div>
-                <div id="relevant_only_checkbox">
-                    <input type="checkbox" id="relevant_only">
-                    <label for="relevant_only">Return only Relevant
-                        Articles</label>
-                    <br/>
-                    <br/>
-                    <label for="start_date">Query Start Date</label> <br/>
-                    <input id="start_date" type="date">
-                    <br/>
-                    <br/>
-                    <label for="end_date">Query End Date</label> <br/>
-                    <input id="end_date" type="date">
-                    <br/>
-                    <br/>
-                    <label for="submit_query">Query End Date</label> <br/>
-                    <input id="submit_query" type="submit" value="Submit Query">
-                    <br/>
-                </div>
+                
             </div>
         </form>
     </div>

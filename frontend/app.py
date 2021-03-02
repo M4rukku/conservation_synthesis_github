@@ -30,5 +30,4 @@ def sync():
     return render_template('sync.html')
 
 #run flask under debug mode for development
-if __name__ == '__main__':
- app.run(debug=True)
+app.run(debug=True)
