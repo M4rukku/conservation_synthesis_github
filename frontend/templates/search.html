@@ -2,7 +2,29 @@
 
 {% block content %}
     <h2>Search</h2>
-    This is the webpage where most of the data should be search for. </br>
-    The currently available options are just a search bar and a bunch of options.
-    The results would be returned (maybe) on results pages or here.</br>
+    <div>
+    {#this is for mocking purpose and would be remove in the future.#}
+    This is the webpage where most of the data should be search for. <br>
+    The currently available options are just a search bar and a bunch of options. <br>
+    The results would be returned (maybe) on results pages or here.<br>
+    <br>
+    </div>
+    <div>
+    <h4>Search Criteria</h4>
+    <hr>
+    <form>
+    <h5>Journals to Search</h5>
+    <div>
+        <input type="checkbox" id="all_journals">
+        <label for="all_journals">All Journals</label>
+    </div>
+    <hr>
+    {% for journal in journal_name %}
+        <div>
+        <input type="checkbox" id="{{journal}}">
+        <label>{{ journal }}</label>
+        </div>
+    {% endfor %}
+    </form>
+    </div>
 {% endblock %}
