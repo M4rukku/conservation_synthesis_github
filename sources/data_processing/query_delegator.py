@@ -4,7 +4,7 @@ from threading import Timer
 
 import aiohttp
 
-from sources.data_processing.async_mp_queue import AsyncMPQueue
+from sources.data_processing.async_mp_queue import AsyncMTQueue
 from sources.data_processing.queries import AbstractQuery, FailedQueryResponse
 from . import queries
 from .repositories import AbstractRepository, DataNotFoundError, \
@@ -34,14 +34,14 @@ class AllRepositoriesTriedError(Exception):
     pass
 
 
-def run_delegator(query_delegation_queue: AsyncMPQueue,
-                  response_queue: AsyncMPQueue):
+def run_delegator(query_delegation_queue: AsyncMTQueue,
+                  response_queue: AsyncMTQueue):
     delegator = QueryDelegator(query_delegation_queue,
                                response_queue)
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(delegator.process_queries())
-    loop.close()
-
+    event_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(event_loop)
+    event_loop.run_until_complete(delegator.process_queries())
+    event_loop.close()
 
 class QueryCounter:
     """Query Counter is a simple Utility tool that keeps track of the number
@@ -79,8 +79,8 @@ class QueryCounter:
 class QueryDelegator:
 
     def __init__(self,
-                 query_delegation_queue: AsyncMPQueue,
-                 response_queue: AsyncMPQueue):
+                 query_delegation_queue: AsyncMTQueue,
+                 response_queue: AsyncMTQueue):
         self._query_delegation_queue = query_delegation_queue
         self._response_queue = response_queue
         self._query_counter = QueryCounter()
@@ -100,7 +100,7 @@ class QueryDelegator:
     query_repository_preferences = \
         {"KeywordQuery": ["openaire", "CORE", "crossref"],
          "DOIQuery": ["openaire", "CORE", "crossref"],
-         "JournalTimeIntervalQuery": ["crossref", "openaire", "CORE"]}
+         "JournalTimeIntervalQuery": ["crossref"]}
 
     async def wait_until_repository_available(self, repo_identifier):
         while (self._query_counter.get_open_connections_for_repo(
@@ -113,7 +113,7 @@ class QueryDelegator:
     async def choose_repository(self, query) -> AbstractRepository:
         if isinstance(query, queries.KeywordQuery):
             rep_pref = self.query_repository_preferences["KeywordQuery"]
-        elif isinstance(query, queries.JournalTimeIntervalQuery):
+        elif isinstance(query, queries.ISSNTimeIntervalQuery):
             rep_pref = self.query_repository_preferences[
                 "JournalTimeIntervalQuery"]
         elif isinstance(query, queries.DoiQuery):
@@ -163,9 +163,10 @@ class QueryDelegator:
                     print("Terminated Loop")
                     timeout = None
                     self._terminated = True
-                    await asyncio.wait(asyncio.all_tasks() - initial_tasks,
-                                       timeout=timeout)
-                    if self._query_delegation_queue.qsize() ==0:
+                    if len(asyncio.all_tasks() - initial_tasks) > 0:
+                        await asyncio.wait(asyncio.all_tasks() - initial_tasks,
+                                           timeout=timeout)
+                    if self._query_delegation_queue.qsize() == 0:
                         break
 
                     self._query_delegation_queue.put(TerminationFlag())
@@ -178,5 +179,6 @@ class QueryDelegator:
 
                 asyncio.create_task(self.handle_query(query, session))
 
-            await asyncio.wait(asyncio.all_tasks() - initial_tasks,
-                               timeout=timeout)
+            if len(asyncio.all_tasks() - initial_tasks) > 0:
+                await asyncio.wait(asyncio.all_tasks() - initial_tasks,
+                                   timeout=timeout)

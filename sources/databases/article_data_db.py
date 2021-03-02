@@ -1,6 +1,6 @@
-from dataclasses import dataclass, asdict
 import json
 import textwrap
+from dataclasses import dataclass, asdict
 
 
 @dataclass
@@ -51,3 +51,9 @@ class MariaRepositoryAPI:
 
     def store_article(self, metadata: DBArticleMetadata):
         pass
+
+    def __enter__(self):
+        pass #Establish connection
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass #Commit Transactions and close DB

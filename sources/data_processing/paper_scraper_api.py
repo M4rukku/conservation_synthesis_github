@@ -1,12 +1,10 @@
-from concurrent.futures.thread import ThreadPoolExecutor
-from multiprocessing import Process, Queue, Value
+import typing
+from threading import Thread
+
+from sources.data_processing.async_mp_queue import AsyncMTQueue
+from sources.data_processing.queries import AbstractQuery, Response
 from sources.data_processing.query_delegator import run_delegator, \
     TerminationFlag
-from sources.data_processing.queries import AbstractQuery, Response
-from sources.data_processing.async_mp_queue import AsyncMPQueue
-import typing
-import queue
-import asyncio
 
 
 class PaperScraper:
@@ -20,44 +18,31 @@ class PaperScraper:
     AbstractQuery from queries.py."""
 
     def __init__(self):
-        self._delegation_queue: AsyncMPQueue[AbstractQuery] = None
-        self._response_queue: AsyncMPQueue[Response] = None
-        self._process = None  # Use with instead
+        self._delegation_queue: AsyncMTQueue = None
+        self._response_queue: AsyncMTQueue = None
+        self._thread = None  # Use with instead
 
     def delegate_query(self, query: AbstractQuery):
         self._delegation_queue.put(query)
 
-    def poll_all_responses(self) -> typing.List[Response]:
-        responses = []
-        while True:
-            try:
-                tmp = self._response_queue.get_nowait()
-                responses.append(tmp)
-            except queue.Empty as e:
-                break
+    def poll_all_available_responses(self) -> typing.List[Response]:
+        return self._response_queue.get_all_available()
 
-        return responses
-
-    def poll_response(self, blocking=False, timeout=None) -> Response:
+    def poll_response(self, blocking=True, timeout=None) -> Response:
         return self._response_queue.get(block=blocking, timeout=timeout)
 
     def initialise(self):
-        self._delegation_queue: AsyncMPQueue[AbstractQuery] = AsyncMPQueue()
-        self._response_queue: AsyncMPQueue[Response] = AsyncMPQueue()
-        self._process = Process(target=run_delegator,
-                                args=(self._delegation_queue,
-                                      self._response_queue),
-                                name="paper_scraper_runner")
+        self._delegation_queue: AsyncMTQueue = AsyncMTQueue()
+        self._response_queue: AsyncMTQueue = AsyncMTQueue()
+        self._thread = Thread(target=run_delegator,
+                              args=(self._delegation_queue,
+                                    self._response_queue),
+                              name="paper_scraper_runner")
+        self._thread.start()
 
     def terminate(self):
-        while True:
-            try:
-                tmp = self._delegation_queue.get_nowait()
-            except queue.Empty as e:
-                break
         self._delegation_queue.put(TerminationFlag())
-        self._process.join()
-        self._process.close()
+        self._thread.join()
 
     def __enter__(self):
         self.initialise()

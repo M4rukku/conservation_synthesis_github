@@ -56,11 +56,13 @@ class FailedQueryResponse(Response):
     def __init__(self, query_id):
         super().__init__(query_id, None)
 
+
 class JournalDaterangeResponse(Response):
-    def __init__(self, query_id: int, all_articles: lists):
+    def __init__(self, query_id: int, all_articles: list):
         super().__init__(query_id, None)
         self.query_id = query_id
         self.all_articles = all_articles
+
 
 # Interface Definition
 ################################################################################
@@ -94,17 +96,15 @@ class DoiQuery(AbstractQuery):
         self.doi_to_query = doi_to_query
 
 
-class JournalTimeIntervalQuery(AbstractQuery):
+class ISSNTimeIntervalQuery(AbstractQuery):
     def __init__(
             self,
             query_id: int,
-            journal_name,
-            start_interval_date: datetime,
-            end_interval_date: datetime,
-            issn: str = None
+            issn: str,
+            start_interval_date: datetime.date,
+            end_interval_date: datetime.date,
     ):
         super().__init__(query_id)
-        self.journal_name = journal_name
         self.start_interval_date = start_interval_date
         self.end_interval_date = end_interval_date
         self.issn = issn
