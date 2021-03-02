@@ -7,8 +7,7 @@
 }
 
 .scroll {
-    width: 450px;
-    height: 400px;
+    height: 250px;
     background-color: white;
     overflow-y: scroll;
     text-align: left;
@@ -26,8 +25,24 @@ h2 {
 #grid_wrapper{
     display: flex;
 }
-#journal_selector {
-}
-#relevant_only_checkbox {
+
+#criteria {
     padding-left: 25px
+}
+
+#journals {
+    padding-left: 25px
+}
+
+#description {
+    padding-right: 25px;
+}
+
+#submit_query {
+    background-color: #FD635A;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 12px 24px;
+    margin: 4px 2px;
 }

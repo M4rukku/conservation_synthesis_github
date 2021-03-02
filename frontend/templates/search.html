@@ -2,52 +2,54 @@
 
 {% block content %}
     <h2>Search</h2>
-    <div>
-        {#this is for mocking purpose and would be remove in the future.#}
-        This is the webpage where most of the data should be search for. <br>
-        The currently available options are just a search bar and a bunch of
-        options. <br>
-        The results would be returned (maybe) on results pages or here.<br>
-        <br>
+    <div id="description">
+        <p> Processing the search query (scraping abstracts and classifying them)
+            might take a while - you can see the sync status on the 'Sync' page.
+            Upon completion the results will be added to the database 
+            which can be seen on the 'Results' page.<br><br> </p>
     </div>
     <div>
-        <h4>Search Criteria</h4>
-        <hr>
-        <form>
-            <div id="relevant_only_checkbox">
-                <input type="checkbox" id="relevant_only">
-                <label for="relevant_only">Return only Relevant
-                    Articles</label>
-                <br/>
-                <br/>
-                <label for="start_date">Query Start Date</label> <br/>
-                <input id="start_date" type="date">
-                <br/>
-                <br/>
-                <label for="end_date">Query End Date</label> <br/>
-                <input id="end_date" type="date">
-                <br/>
-                <br/>
-                <label for="submit_query">Query End Date</label> <br/>
-                <input id="submit_query" type="submit" value="Submit Query">
-                <br/>
-                <br/>
-            </div>
-            <h5>Journals to Search</h5>
-            <div>
-                <input type="checkbox" id="all_journals">
-                <label for="all_journals">All Journals</label>
-            </div>
-            <hr>
-            <div id="grid_wrapper">
-                <div class="scroll" id="journal_selector">
-                    {% for journal in journal_name %}
-                        <input type="checkbox" id="{{ journal }}"/>
-                        <label>{{ journal }}</label>
+        <form action="{{ url_for('handle_query') }}"" method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-5">
+                    <h5>General Search Criteria</h5>
+                    <hr>
+                    <div id="criteria">
+                        <input type="checkbox" name="relevant_only">
+                        <label for="relevant_only">Return relevant articles only</label>
                         <br/>
-                    {% endfor %}
+                        <input type="checkbox" name="all_journals">
+                        <label for="all_journals">Search all journals (else select specific)</label>
+                        <br/>
+                        <br/>
+                        <label for="start_date">Query Start Date</label> <br/>
+                        <input name="start_date" type="date" required>
+                        <br/>
+                        <br/>
+                        <label for="end_date">Query End Date</label> <br/>
+                        <input name="end_date" type="date" required>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <input id="submit_query" type="submit" value="Submit Query">
+                        <br/>
+                        </div>
+                    </div>
+                <div class="col-md-5">
+                    <h5>Search Specific Journals</h5>
+                    <hr>
+                    <div id="journals">
+                        <div id="grid_wrapper">
+                            <div class="scroll" id="journal_selector">
+                                {% for journal in journal_name %}
+                                    <input type="checkbox" name="{{ journal }}"/>
+                                    <label>{{ journal }}</label>
+                                    <br/>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    <div>
                 </div>
-                
             </div>
         </form>
     </div>
