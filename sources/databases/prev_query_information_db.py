@@ -13,6 +13,9 @@ class Daterange:
         return Daterange(date.fromisoformat(start_date),
                          date.fromisoformat(end_date))
 
+    def __lt__(self, other):
+        return self.start_date < other.start_date
+
     @property
     def start_date(self):
         return self._start_date
@@ -34,6 +37,7 @@ class Daterange:
     def __str__(self):
         return f"Daterange: From - {self.start_date.isoformat()}, " \
                f"To - {self.end_date.isoformat()} \n"
+
 
 class DaterangeUtility:
     @staticmethod
@@ -83,6 +87,26 @@ class PrevQueryInformation:
         return self._database_object[
             issn] if issn in self._database_object.keys() \
             else {}
+
+    def merge_ranges(self, issn: str):
+        ranges = self._database_object[issn]
+        ranges = list(ranges)
+        ranges.sort()
+        new_ranges = set()
+
+        cur_range = ranges[0]
+        i = 1
+        while i < len(ranges):
+            if cur_range.end_date == ranges[i].start_date:
+                cur_range = Daterange(cur_range.start_date,
+                                      ranges[i].end_date)
+            else:
+                new_ranges.add(cur_range)
+                cur_range = ranges[i]
+            i = i + 1
+
+        new_ranges.add(cur_range)
+        self._database_object[issn] = new_ranges
 
     def __enter__(self):
         try:

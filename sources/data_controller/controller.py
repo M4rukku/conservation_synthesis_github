@@ -209,3 +209,9 @@ class QueryDispatcher:
         with MariaRepositoryAPI() as db:
             for article in scraped_articles_db_format:
                 db.store_article(article)
+
+        with PrevQueryInformation() as db:
+            for name, ranges in unknown_date_ranges:
+                for range in ranges:
+                    db.insert_successful_query(issns[name], range)
+                db.merge_ranges(issns[name])
