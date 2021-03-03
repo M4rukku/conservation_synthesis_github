@@ -115,33 +115,39 @@ class QueryDispatcher:
             issns = {name: db.get_issn_from_name(name)
                      for name in query.journals_to_query}
 
-        queries = []
-        query_id = itertools.count()
+        g_query_id = itertools.count()
 
-        # Convert the User Query into PaperSCraper Queries
-        for name, ranges in unknown_date_ranges:
-            issn = issns[name]
-            for rnge in ranges:
-                delta = rnge.end_date - rnge.start_date
-                days = delta.days
-                # SPLIT INTO BLOCKS OF AT MOST 3 months
-                count = 0
-                split = int(math.ceil(days / 90.0))
-                step = days / split
-
-                while True:
-                    start = rnge.start_date + count * step
-                    end = min(rnge.start_date + (count + 1) * step,
-                              rnge.end_date)
-
-                    queries.append(
-                        ISSNTimeIntervalQuery(next(query_id), issn, start, end))
-
-                    count = count + 1
-                    if end >= rnge.end_date:
-                        break
+        # Convert the User Query into PaperScraper Queries
+        queries = self._convert_user_to_paper_scraper_query(issns, g_query_id,
+                                                            unknown_date_ranges)
 
         # DELEGATE ALL QUERIES and handle them accordingly
+        scraped_articles = self._scrape_queries_with_paperscraper(queries,
+                                                                  g_query_id)
+
+        # Now that we have all queries use the ML Model to judge them and
+        # store them as Article_DB_Format
+        scraped_articles_db_format = []
+        classifier = MlModelWrapper()
+        for article in scraped_articles:
+            relevant = False
+            if article.abstract is not None and article.abstract != "":
+                relevant = classifier.predict_article(article)
+            scraped_articles_db_format.append(
+                map_to_db_metadata(article, relevant)
+            )
+
+        with MariaRepositoryAPI() as db:
+            for article in scraped_articles_db_format:
+                db.store_article(article)
+
+        with PrevQueryInformation() as db:
+            for name, ranges in unknown_date_ranges:
+                for range in ranges:
+                    db.insert_successful_query(issns[name], range)
+                db.merge_ranges(issns[name])
+
+    def _scrape_queries_with_paperscraper(self, queries, query_id):
         scraped_articles = []
         with PaperScraper() as ps:
             for query in queries:
@@ -184,25 +190,31 @@ class QueryDispatcher:
                             scraped_articles.append(response.metadata)
                         else:
                             scraped_articles.append(response.metadata)
+        return scraped_articles
 
-        # Now that we have all queries use the ML Model to judge them and
-        # store them as Article_DB_Format
-        scraped_articles_db_format = []
-        classifier = MlModelWrapper()
-        for article in scraped_articles:
-            relevant = False
-            if article.abstract is not None and article.abstract != "":
-                relevant = classifier.predict_article(article)
-            scraped_articles_db_format.append(
-                map_to_db_metadata(article, relevant)
-            )
+    def _convert_user_to_paper_scraper_query(self, issns, query_id_generator,
+                                             unknown_date_ranges):
+        queries = []
+        for name, ranges in unknown_date_ranges:
+            issn = issns[name]
+            for rnge in ranges:
+                delta = rnge.end_date - rnge.start_date
+                days = delta.days
+                # SPLIT INTO BLOCKS OF AT MOST 3 months
+                count = 0
+                split = int(math.ceil(days / 90.0))
+                step = days / split
 
-        with MariaRepositoryAPI() as db:
-            for article in scraped_articles_db_format:
-                db.store_article(article)
+                while True:
+                    start = rnge.start_date + count * step
+                    end = min(rnge.start_date + (count + 1) * step,
+                              rnge.end_date)
 
-        with PrevQueryInformation() as db:
-            for name, ranges in unknown_date_ranges:
-                for range in ranges:
-                    db.insert_successful_query(issns[name], range)
-                db.merge_ranges(issns[name])
+                    queries.append(
+                        ISSNTimeIntervalQuery(next(query_id_generator), issn,
+                                              start, end))
+
+                    count = count + 1
+                    if end >= rnge.end_date:
+                        break
+        return queries
