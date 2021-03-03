@@ -2,9 +2,9 @@ from datetime import date
 
 import pytest
 
+from sources.databases.daterange_util import Daterange
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
-from sources.databases.prev_query_information_db import PrevQueryInformation, \
-    Daterange
+from sources.databases.prev_query_information_db import PrevQueryInformation
 
 
 class TestPrevQueryInformationDatabase:

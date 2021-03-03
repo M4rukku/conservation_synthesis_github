@@ -9,9 +9,9 @@ from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
     ArticleMetadata
 from sources.databases.article_data_db import MariaRepositoryAPI, \
     DBArticleMetadata
+from sources.databases.daterange_util import Daterange, DaterangeUtility
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
-from sources.databases.prev_query_information_db import PrevQueryInformation, \
-    Daterange, DaterangeUtility
+from sources.databases.prev_query_information_db import PrevQueryInformation
 from sources.frontend.user_queries import UserQueryResponse, \
     UserQueryInformation
 from sources.ml_model.ml_model import MlModelWrapper
@@ -41,17 +41,8 @@ def get_unknown_date_ranges(query: UserQueryInformation):
 
     for name, range in query_ranges:
         known_ranges = ranges[name]
-        for kr in known_ranges:
-            range_cpy = set()
-            for subrange in range:
-                if DaterangeUtility.intersects(kr, subrange):
-                    range_cpy.add(
-                        DaterangeUtility.
-                            remove_interval_from_range(kr, subrange))
-                else:
-                    range_cpy.add(subrange)
-            range = range_cpy
-        query_ranges[name] = range
+        query_ranges[name] = \
+            DaterangeUtility.remove_known_ranges(known_ranges, range)
 
     return query_ranges
 

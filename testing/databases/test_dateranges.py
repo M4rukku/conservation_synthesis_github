@@ -2,8 +2,7 @@ from datetime import date
 
 import pytest
 
-from sources.databases.prev_query_information_db import DaterangeUtility, \
-    Daterange
+from sources.databases.daterange_util import Daterange, DaterangeUtility
 
 
 # A...B...A...B
