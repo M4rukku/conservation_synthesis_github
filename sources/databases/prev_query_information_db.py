@@ -68,6 +68,27 @@ class DaterangeUtility:
             else:
                 return [Daterange(range.start_date, to_remove.start_date)]
 
+    @staticmethod
+    def reduce_ranges(ranges: set) -> set:
+        ranges = list(ranges)
+        ranges.sort()
+        new_ranges = set()
+
+        cur_range = ranges[0]
+        i = 1
+        while i < len(ranges):
+            if cur_range.end_date >= ranges[i].start_date:
+                cur_range = Daterange(cur_range.start_date,
+                                      max(cur_range.end_date,
+                                          ranges[i].end_date))
+            else:
+                new_ranges.add(cur_range)
+                cur_range = ranges[i]
+            i = i + 1
+
+        new_ranges.add(cur_range)
+        return new_ranges
+
 
 class PrevQueryInformation:
     document_path = Path(__file__).parent / "file_databases" / \
@@ -90,23 +111,7 @@ class PrevQueryInformation:
 
     def merge_ranges(self, issn: str):
         ranges = self._database_object[issn]
-        ranges = list(ranges)
-        ranges.sort()
-        new_ranges = set()
-
-        cur_range = ranges[0]
-        i = 1
-        while i < len(ranges):
-            if cur_range.end_date == ranges[i].start_date:
-                cur_range = Daterange(cur_range.start_date,
-                                      ranges[i].end_date)
-            else:
-                new_ranges.add(cur_range)
-                cur_range = ranges[i]
-            i = i + 1
-
-        new_ranges.add(cur_range)
-        self._database_object[issn] = new_ranges
+        self._database_object[issn] = DaterangeUtility.reduce_ranges(ranges)
 
     def __enter__(self):
         try:
