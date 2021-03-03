@@ -87,15 +87,17 @@ class DaterangeUtility:
         new_ranges.add(cur_range)
         return new_ranges
 
-    def remove_known_ranges(self, known_ranges, range):
+    @staticmethod
+    def remove_known_ranges(known_ranges, total_range):
+        known_ranges = DaterangeUtility.reduce_ranges(known_ranges)
         for kr in known_ranges:
             range_cpy = set()
-            for subrange in range:
+            for subrange in total_range:
                 if DaterangeUtility.intersects(kr, subrange):
-                    range_cpy.add(
+                    range_cpy.update(
                         DaterangeUtility.
                             remove_interval_from_range(kr, subrange))
                 else:
                     range_cpy.add(subrange)
-            range = range_cpy
-        return range
+            total_range = range_cpy
+        return DaterangeUtility.reduce_ranges(total_range)

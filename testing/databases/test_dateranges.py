@@ -120,16 +120,43 @@ def test_remove_interval_from_range(remove_interval_type_1,
                                     remove_interval_type_2,
                                     remove_interval_type_3,
                                     remove_interval_type_4):
-
     assert DaterangeUtility.remove_interval_from_range(
         *remove_interval_type_1) == [Daterange(date(2020, 4, 1),
-                                              date(2020, 5, 1))]
+                                               date(2020, 5, 1))]
     assert DaterangeUtility.remove_interval_from_range(
         *remove_interval_type_2) == [Daterange(date(2020, 4, 6),
-                                              date(2020, 5, 5))]
+                                               date(2020, 5, 5))]
     assert DaterangeUtility.remove_interval_from_range(
         *remove_interval_type_3) == \
            [Daterange(date(2020, 4, 1), date(2020, 5, 1)),
             Daterange(date(2020, 5, 5), date(2020, 6, 6))]
     assert DaterangeUtility.remove_interval_from_range(
         *remove_interval_type_4) == []
+
+
+@pytest.fixture
+def known_ranges():
+    return {Daterange(date(2018, 1, 1), date(2018, 9, 7)),
+            Daterange(date(2018, 6, 1), date(2018, 10, 7)),
+            Daterange(date(2019, 2, 5), date(2019, 4, 4)),
+            Daterange(date(2020, 5, 1), date(2021, 4, 4))}
+
+
+@pytest.fixture
+def total_range():
+    return {Daterange(date(2016, 1, 1), date(2021, 9, 7))}
+
+
+@pytest.fixture
+def known_range_removal_response():
+    return {Daterange(date(2016, 1, 1), date(2018, 1, 1)),
+            Daterange(date(2018, 10, 7), date(2019, 2, 5)),
+            Daterange(date(2019, 4, 4), date(2020, 5, 1)),
+            Daterange(date(2021, 4, 4), date(2021, 9, 7))
+            }
+
+
+def test_remove_known_ranges(known_ranges, total_range,
+                             known_range_removal_response):
+    response = DaterangeUtility.remove_known_ranges(known_ranges, total_range)
+    assert response == known_range_removal_response
