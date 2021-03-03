@@ -51,7 +51,7 @@ class MariaRepositoryAPI:
                       start_date: datetime.date,
                       end_date: datetime.date,
                       relevant: bool = None,
-                      classification=None) -> list[DBArticleMetadata]:
+                      classification=None) -> list:
         pass
 
     def store_article(self, metadata: DBArticleMetadata):

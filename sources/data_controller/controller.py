@@ -1,6 +1,7 @@
 import itertools
 import math
 import threading
+from datetime import timedelta
 
 from sources.data_processing.abstract_webscraping import get_abstract_from_doi
 from sources.data_processing.paper_scraper_api import PaperScraper
@@ -147,7 +148,8 @@ class QueryDispatcher:
                     db.insert_successful_query(issns[name], range)
                 db.merge_ranges(issns[name])
 
-    def _scrape_queries_with_paperscraper(self, queries, query_id):
+    @staticmethod
+    def _scrape_queries_with_paperscraper(queries, query_id):
         scraped_articles = []
         with PaperScraper() as ps:
             for query in queries:
@@ -192,10 +194,11 @@ class QueryDispatcher:
                             scraped_articles.append(response.metadata)
         return scraped_articles
 
-    def _convert_user_to_paper_scraper_query(self, issns, query_id_generator,
+    @staticmethod
+    def _convert_user_to_paper_scraper_query(issns, query_id_generator,
                                              unknown_date_ranges):
         queries = []
-        for name, ranges in unknown_date_ranges:
+        for name, ranges in unknown_date_ranges.items():
             issn = issns[name]
             for rnge in ranges:
                 delta = rnge.end_date - rnge.start_date
@@ -203,12 +206,13 @@ class QueryDispatcher:
                 # SPLIT INTO BLOCKS OF AT MOST 3 months
                 count = 0
                 split = int(math.ceil(days / 90.0))
-                step = days / split
+                step = days // split
 
                 while True:
-                    start = rnge.start_date + count * step
-                    end = min(rnge.start_date + (count + 1) * step,
-                              rnge.end_date)
+                    start = rnge.start_date + timedelta(days=count * step)
+                    end = min(
+                        rnge.start_date + timedelta(days=(count + 1) * step),
+                        rnge.end_date)
 
                     queries.append(
                         ISSNTimeIntervalQuery(next(query_id_generator), issn,
