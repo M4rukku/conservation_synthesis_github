@@ -20,6 +20,13 @@ $ export FLASK_APP=app
 $ export FLASK_ENV=development
 ```
 
+Install other dependencies:
+```bash
+$ pip install aiohttp
+$ pip install jellyfish
+$ pip install habanero
+```
+
 Run app:
 ```bash
 $ flask run
