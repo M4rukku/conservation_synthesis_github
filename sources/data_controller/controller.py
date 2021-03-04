@@ -190,7 +190,7 @@ class QueryDispatcher:
             for query in queries:
                 ps.delegate_query(query)
             while not ps.processed_all_queries:
-                response = ps.poll_response(timeout=15)
+                response = ps.poll_response()
 
                 if isinstance(response, FailedQueryResponse):
                     continue
