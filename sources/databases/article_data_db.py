@@ -1,3 +1,4 @@
+import datetime
 import json
 import textwrap
 from dataclasses import dataclass, asdict
@@ -42,7 +43,7 @@ class DBArticleMetadata:
         return returnString
 
 
-class MariaRepositoryAPI:
+class ArticleRepositoryAPI:
     def __init__(self):
         pass
 
@@ -53,8 +54,10 @@ class MariaRepositoryAPI:
     def store_article(self, metadata: DBArticleMetadata):
         pass
 
+    #Setup COnnection
     def __enter__(self):
-        pass #Establish connection
+        pass
 
+    #Teardown Connection
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass #Commit Transactions and close DB
+        pass

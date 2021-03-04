@@ -43,6 +43,7 @@ def run_delegator(query_delegation_queue: AsyncMTQueue,
     event_loop.run_until_complete(delegator.process_queries())
     event_loop.close()
 
+
 class QueryCounter:
     """Query Counter is a simple Utility tool that keeps track of the number
     of active requests outgoing on different repositories.
@@ -147,7 +148,9 @@ class QueryDelegator:
             self._response_queue.put(result)
             self._query_counter.request_completed(repo.get_identifier())
         except DataNotFoundError as e:
-            query.store_scheduling_information(repo.get_identifier())
+            self._query_delegation_queue.put(query)
+            self._query_counter.request_completed(repo.get_identifier())
+        except Exception as e:
             self._query_delegation_queue.put(query)
             self._query_counter.request_completed(repo.get_identifier())
 
@@ -164,8 +167,8 @@ class QueryDelegator:
                     timeout = None
                     self._terminated = True
                     if len(asyncio.all_tasks() - initial_tasks) > 0:
-                        await asyncio.wait(asyncio.all_tasks() - initial_tasks,
-                                           timeout=timeout)
+                        await asyncio.gather(*(asyncio.all_tasks() -
+                                              initial_tasks))
                     if self._query_delegation_queue.qsize() == 0:
                         break
 

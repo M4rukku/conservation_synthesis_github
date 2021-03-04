@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 
-from user_queries import UserQueryInformation
+from frontend.user_queries import UserQueryInformation
 from sources.data_controller.controller_interface import UserQueryHandler
 from flask import Flask, render_template, request
 from datetime import datetime

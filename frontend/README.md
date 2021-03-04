@@ -25,6 +25,7 @@ Install other dependencies:
 $ pip install aiohttp
 $ pip install jellyfish
 $ pip install habanero
+$ pip install cloudscraper
 ```
 
 Run app:

@@ -23,7 +23,7 @@ class ArticleMetadata:
     journal_volume: str = None
     journal_issue: str = None
     issn: str = None
-    url: str = None  # TODO REMOVE
+    url: str = None
 
     def to_json(self):
         return json.dumps(asdict(self))
