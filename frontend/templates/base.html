@@ -19,9 +19,9 @@
         <div class="col-md-2">
             <nav class="nav flex-column" style="height: 100vh; background-color: #343434;">
                 <a class="nav-link active" href="{{ url_for('index')}}">About</a>
-                <a class="nav-link" href="#">Run Search</a>
-                <a class="nav-link" href="#">New Results</a>
-                <a class="nav-link" href="#">All Results</a>
+                <a class="nav-link" href="{{ url_for('search')}}">Search</a>
+                <a class="nav-link" href="{{ url_for('results')}}">Results</a>
+                <a class="nav-link" href="{{ url_for('sync')}}">Sync</a>
             </nav>
         </div>
         <div class="col-md-10">

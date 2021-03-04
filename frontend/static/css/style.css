@@ -1,0 +1,48 @@
+.nav-link:active {
+    color: #B3C200 !important;
+}
+
+.nav-link {
+    color: white !important;
+}
+
+.scroll {
+    height: 250px;
+    background-color: white;
+    overflow-y: scroll;
+    text-align: left;
+    padding-left: 0px;
+}
+
+a:hover {
+    color: #B3C200 !important;
+}
+
+h2 {
+    margin-top: 20px !important;
+}
+
+#grid_wrapper{
+    display: flex;
+}
+
+#criteria {
+    padding-left: 25px
+}
+
+#journals {
+    padding-left: 25px
+}
+
+#description {
+    padding-right: 25px;
+}
+
+#submit_query {
+    background-color: #FD635A;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 12px 24px;
+    margin: 4px 2px;
+}

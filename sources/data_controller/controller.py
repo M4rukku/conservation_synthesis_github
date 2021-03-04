@@ -13,9 +13,10 @@ from sources.databases.article_data_db import ArticleRepositoryAPI, \
 from sources.databases.daterange_util import Daterange, DaterangeUtility
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation
-from sources.frontend.user_queries import UserQueryResponse, \
+from frontend.user_queries import UserQueryResponse, \
     UserQueryInformation
 from sources.ml_model.ml_model import MlModelWrapper
+from typing import List
 
 
 class InvalidTimeRangeError(Exception):
@@ -267,7 +268,6 @@ class QueryDispatcher:
                     queries.append(
                         ISSNTimeIntervalQuery(next(query_id_generator), issn,
                                               start, end))
-
                     count = count + 1
                     if end >= rnge.end_date:
                         break

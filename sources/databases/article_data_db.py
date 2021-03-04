@@ -2,6 +2,7 @@ import datetime
 import json
 import textwrap
 from dataclasses import dataclass, asdict
+from typing import List
 
 
 @dataclass
@@ -46,12 +47,8 @@ class ArticleRepositoryAPI:
     def __init__(self):
         pass
 
-    def general_query(self,
-                      journal_name: str,
-                      start_date: datetime.date,
-                      end_date: datetime.date,
-                      relevant: bool = None,
-                      classification=None) -> list:
+    def general_query(self, journal_name: str, start_date: str, end_date:
+    str, relevant: bool = None, classification=None) -> List[DBArticleMetadata]:
         pass
 
     def store_article(self, metadata: DBArticleMetadata):

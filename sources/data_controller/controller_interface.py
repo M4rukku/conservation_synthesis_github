@@ -1,5 +1,6 @@
+from frontend.user_queries import UserQueryInformation, UserQueryResponse
 from sources.data_controller.controller import QueryDispatcher
-from sources.frontend.user_queries import UserQueryInformation, \
+from frontend.user_queries import UserQueryInformation, \
     UserQueryResponse
 
 

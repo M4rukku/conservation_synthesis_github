@@ -1,5 +1,10 @@
 import datetime
+import sys
 from dataclasses import dataclass
+from typing import List
+
+sys.path.append('../')
+from sources.databases.article_data_db import DBArticleMetadata
 
 classification_types = ["Amphibians",
                         "Animals",
@@ -35,7 +40,7 @@ classification_types = ["Amphibians",
 
 @dataclass
 class UserQueryInformation:
-    journals_to_query: list
+    journals_to_query: List[str]
     start_date_range: datetime.date
     end_date_range: datetime.date
     relevant_only: bool = None
@@ -43,6 +48,7 @@ class UserQueryInformation:
 
 
 class UserQueryResponse:
-    def __init__(self, processed_data: list, message=None):
+    def __init__(self, processed_data: List[DBArticleMetadata], message=
+    None):
         self.processed_data = processed_data  # Data from Database
-        self.message = message  # What still needs to be gathered (intervals)i
+        self.message = message  # What still needs to be gathered (intervals)
