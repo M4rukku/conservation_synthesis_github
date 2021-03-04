@@ -51,6 +51,9 @@ class PaperScraper:
                               name="paper_scraper_runner")
         self._thread.start()
 
+    def delegation_qsize(self):
+        return self._delegation_queue.qsize()
+
     @property
     def processed_all_queries(self):
         if len(self._all_query_ids)==0:

@@ -163,7 +163,9 @@ class QueryDispatcher:
                 map_to_db_metadata(article, relevant)
             )
             if cnt > classify_data_cb_freq and classify_data_cb is not None:
-                classify_data_cb()
+                classify_data_cb(len(scraped_articles_db_format),
+                                 len(scraped_articles_db_format)/
+                                 len(scraped_articles))
                 cnt = 0
 
         with self.article_database() as db:
@@ -185,7 +187,6 @@ class QueryDispatcher:
                                           fetch_article_cb_freq):
         scraped_articles = []
         cnt = 0
-        cc = 0
         with PaperScraper() as ps:
             for query in queries:
                 ps.delegate_query(query)
@@ -202,14 +203,11 @@ class QueryDispatcher:
                         [article for article in response.all_articles if
                          article.abstract is None or article.abstract == ""]
 
-                    #scraped_articles.extend(articles_w_abstract)
+                    # scraped_articles.extend(articles_w_abstract)
                     cnt += len(articles_w_abstract)
 
                     for article in articles_wo_abstract:
                         if article.doi is not None and article.doi != "":
-                            if cc==60:
-                                print("ff")
-                            cc+=1
                             ps.delegate_query(
                                 DoiQuery(next(query_id), article.doi))
                         else:
@@ -235,8 +233,14 @@ class QueryDispatcher:
 
                 if cnt >= fetch_article_cb_freq \
                         and fetch_article_cb is not None:
-                    fetch_article_cb()
+                    num_scraped = len(scraped_articles)
+                    fetch_article_cb(num_scraped,
+                                     num_scraped / (num_scraped +
+                                                    ps.delegation_qsize()))
                     cnt = 0
+
+        if fetch_article_cb is not None:
+            fetch_article_cb(len(scraped_articles), 1.0)
 
         return scraped_articles
 
