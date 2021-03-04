@@ -1,13 +1,13 @@
-import re
-import cloudscraper
-from bs4 import BeautifulSoup
-from urllib.parse import unquote
-import pandas as pd
-import time
 import random
+import re
+import time
 from concurrent.futures import as_completed, ThreadPoolExecutor
-   
-    
+from urllib.parse import unquote
+
+import cloudscraper
+import pandas as pd
+from bs4 import BeautifulSoup
+
 urlreg = re.compile(
     r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 )
@@ -27,7 +27,7 @@ def get_abstract_from_doi(doi: str):
     doi_bs = BeautifulSoup(doi_data.text)
 
     if doi_data.url.startswith(
-        "https://link.springer.com/"
+            "https://link.springer.com/"
     ) and not doi_data.url.startswith("https://link.springer.com/article"):
         cleaned_link = doi_data.url.replace(
             "https://link.springer.com/", "https://link.springer.com/article/"
@@ -111,7 +111,7 @@ def update_dict_w_abstract(row):
 
 
 def query_abstract_from_dois_with_delay(
-    data: pd.DataFrame, delay, start=0, end=0
+        data: pd.DataFrame, delay, start=0, end=0
 ):
     """Queries abstract using the doi fields in the Dataframe data. Returns a new Dataframe with scraped abstracts. After every query, it will pause for delay seconds to prevent being blocked.
 
@@ -138,7 +138,7 @@ def query_abstract_from_dois_with_delay(
 
 
 def query_abstract_from_dois_using_multithreading(
-    data: pd.DataFrame, start=0, end=0
+        data: pd.DataFrame, start=0, end=0
 ):
     """Queries abstract using the doi fields in the Dataframe data. Returns a new Dataframe with scraped abstracts. It uses multithreading for fast results; this may lead to IP blocks, so take care when using it.
 

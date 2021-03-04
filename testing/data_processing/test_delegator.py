@@ -227,3 +227,26 @@ class TestDelegator:
             assert strings_approx_equal(responses[i].metadata.title,
                                         list_doi_title[i-1][1])
 
+class TestBugs:
+
+    @pytest.fixture
+    def weird_doi_query(self):
+        return [DoiQuery(0, '10.1016/s0929-1393(16)30034-8'),
+                TerminationFlag()]
+
+    @pytest.fixture
+    def real_delegator(self):
+        return QueryDelegator(AsyncMTQueue(), AsyncMTQueue())
+
+    def test_failing_query(self,
+                           event_loop,
+                           real_delegator,
+                           weird_doi_query):
+
+        delegator = real_delegator
+        query = weird_doi_query
+
+        for ip in weird_doi_query:
+            delegator._query_delegation_queue.put(ip)
+
+        event_loop.run_until_complete(delegator.process_queries())

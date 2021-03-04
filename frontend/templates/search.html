@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Search</h2>
+    <div>
+        {#this is for mocking purpose and would be remove in the future.#}
+        This is the webpage where most of the data should be search for. <br>
+        The currently available options are just a search bar and a bunch of
+        options. <br>
+        The results would be returned (maybe) on results pages or here.<br>
+        <br>
+    </div>
+    <div>
+        <h4>Search Criteria</h4>
+        <hr>
+        <form>
+            <h5>Journals to Search</h5>
+            <div>
+                <input type="checkbox" id="all_journals">
+                <label for="all_journals">All Journals</label>
+            </div>
+            <hr>
+            <div id="grid_wrapper">
+                <div class="scroll" id="journal_selector">
+                    {% for journal in journal_name %}
+                        <input type="checkbox" id="{{ journal }}"/>
+                        <label>{{ journal }}</label>
+                        <br/>
+                    {% endfor %}
+                </div>
+                <div id="relevant_only_checkbox">
+                    <input type="checkbox" id="relevant_only">
+                    <label for="relevant_only">Return only Relevant
+                        Articles</label>
+                    <br/>
+                    <br/>
+                    <label for="start_date">Query Start Date</label> <br/>
+                    <input id="start_date" type="date">
+                    <br/>
+                    <br/>
+                    <label for="end_date">Query End Date</label> <br/>
+                    <input id="end_date" type="date">
+                    <br/>l
+                    <br/>
+                    <label for="submit_query">Query End Date</label> <br/>
+                    <input id="submit_query" type="submit" value="Submit Query">
+                    <br/>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
