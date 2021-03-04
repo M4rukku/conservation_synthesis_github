@@ -2,9 +2,10 @@ from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.databases.article_data_db import MariaRepositoryAPI
 from sources.databases.prev_query_information_db import PrevQueryInformation, \
     Daterange
-from sources.frontend.user_queries import UserQueryResponse, \
+from frontend.user_queries import UserQueryResponse, \
     UserQueryInformation
 from sources.ml_model.ml_model import MlModelWrapper
+from typing import List
 
 
 class QueryDispatcher:
@@ -27,5 +28,5 @@ class QueryDispatcher:
         pass
 
     def _load_and_synchronize_in_background(self, query:
-    UserQueryInformation, uknown_date_ranges: list[Daterange]):
+    UserQueryInformation, uknown_date_ranges: List[Daterange]):
         pass

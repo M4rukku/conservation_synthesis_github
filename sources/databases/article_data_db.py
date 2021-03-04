@@ -1,6 +1,7 @@
 import json
 import textwrap
 from dataclasses import dataclass, asdict
+from typing import List
 
 
 @dataclass
@@ -46,7 +47,7 @@ class MariaRepositoryAPI:
         pass
 
     def general_query(self, journal_name: str, start_date: str, end_date:
-    str, relevant: bool = None, classification=None) -> list[DBArticleMetadata]:
+    str, relevant: bool = None, classification=None) -> List[DBArticleMetadata]:
         pass
 
     def store_article(self, metadata: DBArticleMetadata):
