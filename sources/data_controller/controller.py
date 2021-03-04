@@ -8,7 +8,7 @@ from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
     JournalDaterangeResponse, FailedQueryResponse, DoiQuery, KeywordQuery, \
     ArticleMetadata
-from sources.databases.article_data_db import MariaRepositoryAPI, \
+from sources.databases.article_data_db import ArticleRepositoryAPI, \
     DBArticleMetadata
 from sources.databases.daterange_util import Daterange, DaterangeUtility
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
@@ -66,15 +66,26 @@ def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
 
 
 class QueryDispatcher:
-    def __init__(self):
-        pass
+    def __init__(self,
+                 issn_database: JournalNameIssnDatabase = None,
+                 article_database: ArticleRepositoryAPI = None):
 
-    def process_query(self, query: UserQueryInformation) -> UserQueryResponse:
+        self.issn_database = \
+            JournalNameIssnDatabase if issn_database is None else issn_database
+        self.article_database = \
+            ArticleRepositoryAPI if issn_database is None else article_database
+
+    def process_query(self, query: UserQueryInformation,
+                      fetch_article_cb, fetch_article_cb_freq,
+                      classify_data_cb, classify_data_cb_freq,
+                      finished_execution_cb) -> UserQueryResponse:
+
         """ Processes a user query instantly! Returns what is known so far,
         and tells the user that the rest will be loaded in the future
 
         :param query: A UserQueryInformation object
         """
+
         # Check Validity of Daterange
         if query.end_date_range <= query.start_date_range:
             raise InvalidTimeRangeError
@@ -84,13 +95,16 @@ class QueryDispatcher:
         # Dispatch the unknown ranges to be queried in the bg
         thread = threading.Thread(
             target=self._load_and_synchronize_in_background,
-            args=(query, unknown_date_ranges))
+            args=(query, unknown_date_ranges,
+                  fetch_article_cb, fetch_article_cb_freq,
+                  classify_data_cb, classify_data_cb_freq,
+                  finished_execution_cb))
 
         thread.daemon = True
         thread.start()
 
         response = []
-        with MariaRepositoryAPI() as db:
+        with self.article_database() as db:
             for name in query.journals_to_query:
                 response.append(
                     db.general_query(name,
@@ -108,11 +122,16 @@ class QueryDispatcher:
             UserQueryResponse(response,
                               f"Missing Information: {missing_information}")
 
-    def _load_and_synchronize_in_background(self, query:
-    UserQueryInformation, unknown_date_ranges):
+    def _load_and_synchronize_in_background(self, query: UserQueryInformation,
+                                            unknown_date_ranges,
+                                            fetch_article_cb,
+                                            fetch_article_cb_freq,
+                                            classify_data_cb,
+                                            classify_data_cb_freq,
+                                            finished_execution_cb):
         # Change to Paper Scraper Queries
 
-        with JournalNameIssnDatabase() as db:
+        with self.issn_database() as db:
             issns = {name: db.get_issn_from_name(name)
                      for name in query.journals_to_query}
 
@@ -123,22 +142,31 @@ class QueryDispatcher:
                                                             unknown_date_ranges)
 
         # DELEGATE ALL QUERIES and handle them accordingly
-        scraped_articles = self._scrape_queries_with_paperscraper(queries,
-                                                                  g_query_id)
+        scraped_articles = \
+            self._scrape_queries_with_paperscraper(queries,
+                                                   g_query_id,
+                                                   fetch_article_cb,
+                                                   fetch_article_cb_freq)
 
         # Now that we have all queries use the ML Model to judge them and
         # store them as Article_DB_Format
         scraped_articles_db_format = []
         classifier = MlModelWrapper()
+        cnt = 0
+
         for article in scraped_articles:
             relevant = False
+            cnt = cnt + 1
             if article.abstract is not None and article.abstract != "":
                 relevant = classifier.predict_article(article)
             scraped_articles_db_format.append(
                 map_to_db_metadata(article, relevant)
             )
+            if cnt > classify_data_cb_freq and classify_data_cb is not None:
+                classify_data_cb()
+                cnt = 0
 
-        with MariaRepositoryAPI() as db:
+        with self.article_database() as db:
             for article in scraped_articles_db_format:
                 db.store_article(article)
 
@@ -148,14 +176,21 @@ class QueryDispatcher:
                     db.insert_successful_query(issns[name], range)
                 db.merge_ranges(issns[name])
 
+        if finished_execution_cb is not None:
+            finished_execution_cb()
+
     @staticmethod
-    def _scrape_queries_with_paperscraper(queries, query_id):
+    def _scrape_queries_with_paperscraper(queries, query_id,
+                                          fetch_article_cb,
+                                          fetch_article_cb_freq):
         scraped_articles = []
+        cnt = 0
+        cc = 0
         with PaperScraper() as ps:
             for query in queries:
                 ps.delegate_query(query)
             while not ps.processed_all_queries:
-                response = ps.poll_response()
+                response = ps.poll_response(timeout=15)
 
                 if isinstance(response, FailedQueryResponse):
                     continue
@@ -167,10 +202,14 @@ class QueryDispatcher:
                         [article for article in response.all_articles if
                          article.abstract is None or article.abstract == ""]
 
-                    scraped_articles.extend(articles_w_abstract)
+                    #scraped_articles.extend(articles_w_abstract)
+                    cnt += len(articles_w_abstract)
 
                     for article in articles_wo_abstract:
                         if article.doi is not None and article.doi != "":
+                            if cc==60:
+                                print("ff")
+                            cc+=1
                             ps.delegate_query(
                                 DoiQuery(next(query_id), article.doi))
                         else:
@@ -181,17 +220,24 @@ class QueryDispatcher:
                                              article.journal_name))
 
                 elif isinstance(response, Response):
+                    cnt = cnt + 1
                     if response.metadata.abstract is not None and \
                             response.metadata.abstract != "":
-                        scraped_articles.append(response.metadata)
+                        scraped_articles.append(response)
                     else:
                         doi = response.metadata.doi
                         if article.doi is not None and article.doi != "":
                             abstract = get_abstract_from_doi(doi)
                             response.metadata.abstract = abstract
-                            scraped_articles.append(response.metadata)
+                            scraped_articles.append(response)
                         else:
-                            scraped_articles.append(response.metadata)
+                            scraped_articles.append(response)
+
+                if cnt >= fetch_article_cb_freq \
+                        and fetch_article_cb is not None:
+                    fetch_article_cb()
+                    cnt = 0
+
         return scraped_articles
 
     @staticmethod

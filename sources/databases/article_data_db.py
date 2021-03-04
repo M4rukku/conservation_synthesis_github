@@ -42,7 +42,7 @@ class DBArticleMetadata:
         return returnString
 
 
-class MariaRepositoryAPI:
+class ArticleRepositoryAPI:
     def __init__(self):
         pass
 

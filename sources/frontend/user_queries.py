@@ -43,7 +43,6 @@ class UserQueryInformation:
 
 
 class UserQueryResponse:
-    def __init__(self, processed_data: list, message=
-    None):
+    def __init__(self, processed_data: list, message=None):
         self.processed_data = processed_data  # Data from Database
         self.message = message  # What still needs to be gathered (intervals)i
