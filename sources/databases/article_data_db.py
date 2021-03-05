@@ -1,6 +1,8 @@
+import datetime
 import json
 import textwrap
 from dataclasses import dataclass, asdict
+from typing import List
 
 from sources.data_controller.controller_interface import ResultFilter
 
@@ -52,6 +54,9 @@ class ArticleRepositoryAPI:
     def __init__(self):
         pass
 
+    def general_query(self, journal_name: str, start_date: str, end_date:
+    str, relevant: bool = None, classification=None) -> List[DBArticleMetadata]:
+        pass
 
     def perform_filter_query(self,
                              filter_: ResultFilter):

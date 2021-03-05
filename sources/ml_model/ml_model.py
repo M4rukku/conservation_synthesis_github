@@ -1,9 +1,8 @@
 from sources.data_processing.queries import ArticleMetadata
 
-
 class MlModelWrapper:
-    def __init__(self):
-        pass
+    def __init__(self, classifier=None):
+        self.classifier = classifier
 
     def predict_article(self, article: ArticleMetadata):
-        pass
+        return False
