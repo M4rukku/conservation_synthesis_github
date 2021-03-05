@@ -2,9 +2,11 @@ import datetime
 
 from sources.data_controller.controller import QueryDispatcher
 from sources.databases.article_data_db import ArticleRepositoryAPI
-from sources.frontend.user_queries import UserQueryInformation
+from frontend.user_queries import UserQueryInformation
+from frontend.user_queries import ResultFilter
 
 
+# handles search user queries
 class UserQueryHandler:
     def __init__(self):
         self._dispatcher = QueryDispatcher()
@@ -26,29 +28,7 @@ class UserQueryHandler:
                                        )
 
 
-class ResultFilter:
-    def __init__(self,
-                 journal_names: list,
-                 relevant_only: bool = None,
-                 remove_checked_articles: bool = None,
-                 classification: str = None,
-
-                 from_pub_date: datetime.date = None,
-                 to_pub_date: datetime.date = None,
-                 from_sync_date: datetime.date = None,
-                 to_sync_date: datetime.date = None,
-                 ):
-        self.journal_names = journal_names
-        self.relevant_only = relevant_only
-        self.remove_checked_articles = remove_checked_articles
-        self.classification = classification
-
-        self.from_pub_date = from_pub_date
-        self.to_pub_date = to_pub_date
-        self.from_sync_date = from_sync_date
-        self.to_sync_date = to_sync_date
-
-
+# handles results filter queries
 class DatabaseResultQueryHandler:
 
     def process_filter_query(self, filter_: ResultFilter):

@@ -1,10 +1,5 @@
 import datetime
-import sys
 from dataclasses import dataclass
-from typing import List
-
-sys.path.append('../')
-from sources.databases.article_data_db import DBArticleMetadata
 
 classification_types = ["Amphibians",
                         "Animals",
@@ -38,6 +33,7 @@ classification_types = ["Amphibians",
                         "Wetlands"]
 
 
+# query object created on search page
 @dataclass
 class UserQueryInformation:
     journals_to_query: list
@@ -51,3 +47,27 @@ class UserQueryResponse:
     def __init__(self, processed_data: list, message=None):
         self.processed_data = processed_data  # Data from Database
         self.message = message  # What still needs to be gathered (intervals)i
+
+
+# query object created on results page
+class ResultFilter:
+    def __init__(self,
+                 journal_names: list,
+                 relevant_only: bool = None,
+                 remove_checked_articles: bool = None,
+                 classification: str = None,
+
+                 from_pub_date: datetime.date = None,
+                 to_pub_date: datetime.date = None,
+                 from_sync_date: datetime.date = None,
+                 to_sync_date: datetime.date = None,
+                 ):
+        self.journal_names = journal_names
+        self.relevant_only = relevant_only
+        self.remove_checked_articles = remove_checked_articles
+        self.classification = classification
+
+        self.from_pub_date = from_pub_date
+        self.to_pub_date = to_pub_date
+        self.from_sync_date = from_sync_date
+        self.to_sync_date = to_sync_date

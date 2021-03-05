@@ -4,7 +4,7 @@ import textwrap
 from dataclasses import dataclass, asdict
 from typing import List
 
-from sources.data_controller.controller_interface import ResultFilter
+from frontend.user_queries import ResultFilter
 
 
 @dataclass
