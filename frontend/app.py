@@ -2,7 +2,9 @@ import pandas as pd
 import sys
 
 from frontend.user_queries import UserQueryInformation
+from frontend.user_queries import ResultFilter
 from sources.data_controller.controller_interface import UserQueryHandler
+from sources.data_controller.controller_interface import DatabaseResultQueryHandler
 from flask import Flask, render_template, request
 from datetime import datetime
 
@@ -25,11 +27,11 @@ def index():
 
 @app.route('/search')
 def search():
-    return render_template('search.html',journal_name = get_journals())
+    return render_template('search.html', journal_name = get_journals(), topic = "Publication")
 
 # handle query input on the search page
-@app.route('/handle-query', methods=['POST'])
-def handle_query():
+@app.route('/handle-search-query', methods=['POST'])
+def handle_search_query():
     # get all form fields
     if request.form.get('relevant_only'):
         relevant_only = True
@@ -57,7 +59,38 @@ def handle_query():
 
 @app.route('/results')
 def results():
-    return render_template('results.html')
+    return render_template('results.html', journal_name = get_journals(), topic = "Sync")
+
+# handle query input on the results page
+@app.route('/handle-results-query', methods=['POST'])
+def handle_results_query():
+    # get all form fields
+    if request.form.get('relevant_only'):
+        relevant_only = True
+    else:
+        relevant_only = False
+    all_journals = get_journals()
+    if request.form.get('all_journals'):
+        journals = all_journals
+    else:
+        journals = []
+        for journal in all_journals:
+            if request.form.get(journal):
+                journals.append(journal)
+    print(journals)
+    start_date = request.form['start_date']
+    start_date_object = datetime.strptime(start_date, '%Y-%m-%d')
+    end_date = request.form['end_date']
+    end_date_object = datetime.strptime(end_date, '%Y-%m-%d')
+    # create result filter object
+    result_filter = ResultFilter(journal_names=journals,
+                              relevant_only=relevant_only,
+                              from_sync_date=start_date_object,
+                              to_sync_date=end_date_object)
+    # create query handler and process query
+    filter_handler = DatabaseResultQueryHandler()
+    filter_handler.process_filter_query(result_filter)
+    return results()
 
 @app.route('/sync')
 def sync():

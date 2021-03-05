@@ -14,41 +14,11 @@
                 <div class="col-md-5">
                     <h5>General Search Criteria</h5>
                     <hr>
-                    <div id="criteria">
-                        <input type="checkbox" name="relevant_only">
-                        <label for="relevant_only">Return relevant articles only</label>
-                        <br/>
-                        <input type="checkbox" name="all_journals">
-                        <label for="all_journals">Search all journals (else select specific)</label>
-                        <br/>
-                        <br/>
-                        <label for="start_date">Query Start Date</label> <br/>
-                        <input name="start_date" type="date" required>
-                        <br/>
-                        <br/>
-                        <label for="end_date">Query End Date</label> <br/>
-                        <input name="end_date" type="date" required>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <input id="submit_query" type="submit" value="Submit Query">
-                        <br/>
-                        </div>
-                    </div>
+                    {% include 'components/criteria.html' %}
                 <div class="col-md-5">
                     <h5>Search Specific Journals</h5>
                     <hr>
-                    <div id="journals">
-                        <div id="grid_wrapper">
-                            <div class="scroll" id="journal_selector">
-                                {% for journal in journal_name %}
-                                    <input type="checkbox" name="{{ journal }}"/>
-                                    <label>{{ journal }}</label>
-                                    <br/>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    <div>
+                    {% include 'components/journals.html' %}
                 </div>
             </div>
         </form>

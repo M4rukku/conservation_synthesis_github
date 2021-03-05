@@ -41,6 +41,7 @@ def get_unknown_date_ranges(query: UserQueryInformation):
         {name: {Daterange(query.start_date_range,
                           query.end_date_range)} for name in journal_names}
 
+    print(query_ranges)
     for name, range in query_ranges:
         known_ranges = ranges[name]
         query_ranges[name] = \
