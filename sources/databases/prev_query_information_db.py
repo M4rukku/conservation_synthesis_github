@@ -21,7 +21,7 @@ class PrevQueryInformation:
     def get_journal_dateranges(self, issn: str) -> list:
         return self._database_object[
             issn] if issn in self._database_object.keys() \
-            else {}
+            else set()
 
     def merge_ranges(self, issn: str):
         ranges = self._database_object[issn]

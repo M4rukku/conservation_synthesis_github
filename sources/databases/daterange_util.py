@@ -68,6 +68,8 @@ class DaterangeUtility:
 
     @staticmethod
     def reduce_ranges(ranges: set) -> set:
+        if len(ranges)==0:
+            return ranges
         ranges = list(ranges)
         ranges.sort()
         new_ranges = set()

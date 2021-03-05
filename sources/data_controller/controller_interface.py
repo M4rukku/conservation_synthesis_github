@@ -1,9 +1,7 @@
-import datetime
-
 from sources.data_controller.controller import QueryDispatcher
 from sources.databases.article_data_db import ArticleRepositoryAPI
-from frontend.user_queries import UserQueryInformation
-from frontend.user_queries import ResultFilter
+from sources.frontend.user_queries import ResultFilter
+from sources.frontend.user_queries import UserQueryInformation
 
 
 # handles search user queries

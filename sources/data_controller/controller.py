@@ -13,10 +13,9 @@ from sources.databases.article_data_db import ArticleRepositoryAPI, \
 from sources.databases.daterange_util import Daterange, DaterangeUtility
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation
-from frontend.user_queries import UserQueryResponse, \
+from sources.frontend.user_queries import UserQueryResponse, \
     UserQueryInformation
 from sources.ml_model.ml_model import MlModelWrapper
-from typing import List
 
 
 class InvalidTimeRangeError(Exception):
@@ -41,8 +40,7 @@ def get_unknown_date_ranges(query: UserQueryInformation):
         {name: {Daterange(query.start_date_range,
                           query.end_date_range)} for name in journal_names}
 
-    print(query_ranges)
-    for name, range in query_ranges:
+    for name, range in query_ranges.items():
         known_ranges = ranges[name]
         query_ranges[name] = \
             DaterangeUtility.remove_known_ranges(known_ranges, range)
@@ -175,7 +173,7 @@ class QueryDispatcher:
                 db.store_article(article)
 
         with PrevQueryInformation() as db:
-            for name, ranges in unknown_date_ranges:
+            for name, ranges in unknown_date_ranges.items():
                 for range in ranges:
                     db.insert_successful_query(issns[name], range)
                 db.merge_ranges(issns[name])
@@ -268,7 +266,7 @@ class QueryDispatcher:
 
                     queries.append(
                         ISSNTimeIntervalQuery(next(query_id_generator), issn,
-                                              start, end))
+                                              start.date(), end.date()))
                     count = count + 1
                     if end >= rnge.end_date:
                         break

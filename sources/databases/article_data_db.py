@@ -1,10 +1,9 @@
-import datetime
 import json
 import textwrap
 from dataclasses import dataclass, asdict
 from typing import List
 
-from frontend.user_queries import ResultFilter
+from sources.frontend.user_queries import ResultFilter
 
 
 @dataclass
