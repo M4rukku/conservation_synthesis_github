@@ -1,7 +1,8 @@
-import datetime
 import json
 import textwrap
 from dataclasses import dataclass, asdict
+
+from sources.data_controller.controller_interface import ResultFilter
 
 
 @dataclass
@@ -23,6 +24,11 @@ class DBArticleMetadata:
     journal_issue: str = None
     issn: str = None
     url: str = None
+
+    sync_date: str = None
+    checked: bool = None
+
+    classified: str = None
     relevant: bool = None
 
     def to_json(self):
@@ -46,12 +52,9 @@ class ArticleRepositoryAPI:
     def __init__(self):
         pass
 
-    def general_query(self,
-                      journal_name: str,
-                      start_date: datetime.date,
-                      end_date: datetime.date,
-                      relevant: bool = None,
-                      classification=None) -> list:
+
+    def perform_filter_query(self,
+                             filter_: ResultFilter):
         pass
 
     def store_article(self, metadata: DBArticleMetadata):

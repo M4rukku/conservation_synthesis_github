@@ -102,25 +102,25 @@ class QueryDispatcher:
 
         thread.daemon = True
         thread.start()
-
-        response = []
-        with self.article_database() as db:
-            for name in query.journals_to_query:
-                response.append(
-                    db.general_query(name,
-                                     query.start_date_range,
-                                     query.end_date_range,
-                                     query.relevant_only,
-                                     query.classification_restriction))
-        missing_information = \
-            [name + " Missing Ranges: \n" + "   ".join(map(str, ls_date_range))
-             for name, ls_date_range in unknown_date_ranges]
-
-        missing_information = "\n\n".join(missing_information)
-
-        return \
-            UserQueryResponse(response,
-                              f"Missing Information: {missing_information}")
+        # Removed from implementation, might be interesting ing the future
+        # response = []
+        # with self.article_database() as db:
+        #     for name in query.journals_to_query:
+        #         response.append(
+        #             db.general_query(name,
+        #                              query.start_date_range,
+        #                              query.end_date_range,
+        #                              query.relevant_only,
+        #                              query.classification_restriction))
+        # missing_information = \
+        #     [name + " Missing Ranges: \n" + "   ".join(map(str, ls_date_range))
+        #      for name, ls_date_range in unknown_date_ranges]
+        #
+        # missing_information = "\n\n".join(missing_information)
+        #
+        # return \
+        #     UserQueryResponse(response,
+        #                       f"Missing Information: {missing_information}")
 
     def _load_and_synchronize_in_background(self, query: UserQueryInformation,
                                             unknown_date_ranges,
