@@ -48,8 +48,7 @@ class JournalData:
     journal_volume: str
     journal_issue: str
     publication_date: str
-
-
+    issn: str
 
 
 class Response:
@@ -75,6 +74,8 @@ class Response:
                 self.metadata.journal_volume = journal_data.journal_volume
             if self.valid(journal_data.journal_issue):
                 self.metadata.journal_issue = journal_data.journal_issue
+            if self.valid(journal_data.issn):
+                self.metadata.issn = journal_data.issn
 
 
 class FailedQueryResponse(Response):

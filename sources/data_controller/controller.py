@@ -219,7 +219,9 @@ class QueryDispatcher:
                                     publication_date=article.publication_date,
                                     journal_name=article.journal_name,
                                     journal_issue=article.journal_issue,
-                                    journal_volume=article.journal_volume))
+                                    journal_volume=article.journal_volume,
+                                    issn=query.issn
+                                ))
                             ps.delegate_query(q)
                         else:
                             q = KeywordQuery(next(query_id),
@@ -273,7 +275,7 @@ class QueryDispatcher:
 
                     queries.append(
                         ISSNTimeIntervalQuery(next(query_id_generator), issn,
-                                              start.date(), end.date()))
+                                              start, end))
                     count = count + 1
                     if end >= rnge.end_date:
                         break
