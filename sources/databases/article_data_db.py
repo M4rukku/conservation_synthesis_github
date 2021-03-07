@@ -1,8 +1,8 @@
 import json
 import textwrap
 from dataclasses import dataclass, asdict
-from typing import List
 
+from sources.databases.internal_databases import InternalSQLDatabase
 from sources.frontend.user_queries import ResultFilter
 
 
@@ -50,24 +50,23 @@ class DBArticleMetadata:
 
 
 class ArticleRepositoryAPI:
-    def __init__(self):
-        pass
+    def __init__(self, internal_db: InternalSQLDatabase):
+        self._internal_db = internal_db
 
-    def general_query(self, journal_name: str, start_date: str, end_date:
-    str, relevant: bool = None, classification=None) -> List[DBArticleMetadata]:
-        pass
+    def set_checked(self, doi):
+        self._internal_db.set_checked(doi)
 
     def perform_filter_query(self,
                              filter_: ResultFilter):
-        pass
+        return self._internal_db.perform_filter_query(filter_)
 
     def store_article(self, metadata: DBArticleMetadata):
-        pass
+        self._internal_db.store_article(metadata)
 
     #Setup COnnection
     def __enter__(self):
-        pass
+        self._internal_db.initialise()
 
     #Teardown Connection
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        self._internal_db.terminate()

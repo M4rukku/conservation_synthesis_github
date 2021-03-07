@@ -1,0 +1,86 @@
+import abc
+import sqlite3
+from pathlib import Path
+
+from sources.databases.article_data_db import DBArticleMetadata
+from sources.frontend.user_queries import ResultFilter
+
+
+def authors_to_string(authors: list):
+    return ";".join(authors)
+
+
+def author_string_to_list(author_string):
+    return author_string.split(";")
+
+
+class InternalSQLDatabase(abc.ABCMeta):
+    @abc.abstractmethod
+    def set_checked(self, doi):
+        pass
+
+    @abc.abstractmethod
+    def perform_filter_query(self, filter_: ResultFilter):
+        pass
+
+    @abc.abstractmethod
+    def store_article(self, metadata: DBArticleMetadata):
+        pass
+
+    @abc.abstractmethod
+    def initialise(self):
+        pass
+
+    @abc.abstractmethod
+    def terminate(self):
+        pass
+
+
+class SQLiteDB(InternalSQLDatabase):
+    database_path = Path(__file__) / "file_database" / "article_data.sqlite"
+
+    def __init__(self):
+        self.con = None
+
+    def set_checked(self, doi):
+        pass
+
+    def perform_filter_query(self,
+                             filter_: ResultFilter):
+        cur = self.con.cursor()
+
+    def store_article(self, metadata: DBArticleMetadata):
+        cur = self.con.cursor()
+
+        insertion = """INSERT INTO articles(title, authors, doi, 
+        publication_date, abstract, repo_identifier, "language", publisher,
+        journal_name, journal_volume, journal_issue, issn, url, sync_date, 
+        checked, classified, relevant) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
+        ?,?) """
+
+        data = (metadata.title,
+                authors_to_string(metadata.authors),
+                metadata.doi,
+                metadata.publication_date,
+                metadata.abstract,
+                metadata.repo_identifier,
+                metadata.language,
+                metadata.publisher,
+                metadata.journal_name,
+                metadata.journal_volume,
+                metadata.journal_issue,
+                metadata.issn,
+                metadata.url,
+                metadata.sync_date,
+                metadata.checked,
+                metadata.classified,
+                metadata.relevant)
+
+        cur.execute(insertion, data)
+
+    def initialise(self):
+        self.con = sqlite3.connect(self.database_path)
+
+    def terminate(self):
+        self.con.commit()
+        self.con.close()
