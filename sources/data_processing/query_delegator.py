@@ -7,9 +7,13 @@ import aiohttp
 from sources.data_processing.async_mp_queue import AsyncMTQueue
 from sources.data_processing.queries import AbstractQuery, FailedQueryResponse
 from . import queries
+from .abstract_webscraping import async_get_abstract_from_doi
 from .repositories import AbstractRepository, DataNotFoundError, \
     OpenAireRepository, CrossrefRepository, CoreRepository
 
+
+def valid(field:str):
+    return field is not None and field != ""
 
 class TerminationFlag(queries.AbstractQuery):
     """Flag which can be passed into the query_queue to indicate slow
@@ -146,8 +150,18 @@ class QueryDelegator:
         try:
             result = await repo.execute_query(query, session)
             result.add_journal_data(query.get_journal_data())
-            self._response_queue.put(result)
             self._query_counter.request_completed(repo.get_identifier())
+
+            if valid(result.metadata.abstract):
+                self._response_queue.put(result)
+            else:
+                try:
+                    result.metadata.abstract = \
+                        await async_get_abstract_from_doi(result.metadata.doi)
+                except Exception as e:
+                    pass
+                self._response_queue.put(result)
+
         except DataNotFoundError as e:
             self._query_delegation_queue.put(query)
             self._query_counter.request_completed(repo.get_identifier())
@@ -169,7 +183,7 @@ class QueryDelegator:
                     self._terminated = True
                     if len(asyncio.all_tasks() - initial_tasks) > 0:
                         await asyncio.gather(*(asyncio.all_tasks() -
-                                              initial_tasks))
+                                               initial_tasks))
                     if self._query_delegation_queue.qsize() == 0:
                         break
 

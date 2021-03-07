@@ -1,3 +1,4 @@
+import asyncio
 import random
 import re
 import time
@@ -92,6 +93,12 @@ def get_abstract_from_doi(doi: str):
     result = pattern.search(readable_text)
 
     return result.group(1).strip() if result is not None else None
+
+
+async def async_get_abstract_from_doi(doi: str):
+    await asyncio.sleep(0.3)
+    return await asyncio.get_running_loop().run_in_executor(
+        get_abstract_from_doi(doi))
 
 
 def update_dict_w_abstract(row):

@@ -4,7 +4,6 @@ import math
 import threading
 from datetime import timedelta
 
-from sources.data_processing.abstract_webscraping import get_abstract_from_doi
 from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
     JournalDaterangeResponse, FailedQueryResponse, DoiQuery, KeywordQuery, \
@@ -237,17 +236,7 @@ class QueryDispatcher:
 
                 elif isinstance(response, Response):
                     cnt = cnt + 1
-                    if response.metadata.abstract is not None and \
-                            response.metadata.abstract != "":
-                        scraped_articles.append(response)
-                    else:
-                        doi = response.metadata.doi
-                        if article.doi is not None and article.doi != "":
-                            abstract = get_abstract_from_doi(doi)
-                            response.metadata.abstract = abstract
-                            scraped_articles.append(response)
-                        else:
-                            scraped_articles.append(response)
+                    scraped_articles.append(response)
 
                 if cnt >= fetch_article_cb_freq \
                         and fetch_article_cb is not None:
