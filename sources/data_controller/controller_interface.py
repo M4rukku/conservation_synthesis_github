@@ -1,5 +1,6 @@
 from sources.data_controller.controller import QueryDispatcher
 from sources.databases.article_data_db import ArticleRepositoryAPI
+from sources.databases.internal_databases import SQLiteDB
 from sources.frontend.user_queries import ResultFilter
 from sources.frontend.user_queries import UserQueryInformation
 
@@ -31,6 +32,6 @@ class DatabaseResultQueryHandler:
 
     def process_filter_query(self, filter_: ResultFilter):
         result = None
-        with ArticleRepositoryAPI() as db:
+        with ArticleRepositoryAPI(SQLiteDB()) as db:
             result = db.perform_filter_query(filter_)
         return result

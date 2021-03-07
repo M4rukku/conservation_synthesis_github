@@ -11,6 +11,7 @@ from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
 from sources.databases.article_data_db import ArticleRepositoryAPI, \
     DBArticleMetadata
 from sources.databases.daterange_util import Daterange, DaterangeUtility
+from sources.databases.internal_databases import SQLiteDB, InternalSQLDatabase
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation
 from sources.frontend.user_queries import UserQueryResponse, \
@@ -68,12 +69,12 @@ def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
 class QueryDispatcher:
     def __init__(self,
                  issn_database: JournalNameIssnDatabase = None,
-                 article_database: ArticleRepositoryAPI = None):
+                 article_database: InternalSQLDatabase = None):
 
         self.issn_database = \
             JournalNameIssnDatabase if issn_database is None else issn_database
-        self.article_database = \
-            ArticleRepositoryAPI if issn_database is None else article_database
+        self.article_database = SQLiteDB() if issn_database is None else \
+            article_database
 
     def process_query(self, query: UserQueryInformation,
                       fetch_article_cb, fetch_article_cb_freq,
@@ -168,7 +169,7 @@ class QueryDispatcher:
                                  len(scraped_articles))
                 cnt = 0
 
-        with self.article_database() as db:
+        with ArticleRepositoryAPI(self.article_database) as db:
             for article in scraped_articles_db_format:
                 db.store_article(article)
 
