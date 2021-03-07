@@ -17,10 +17,11 @@ class ArticleRepositoryAPI:
     def store_article(self, metadata: DBArticleMetadata):
         self._internal_db.store_article(metadata)
 
-    #Setup COnnection
+    # Setup COnnection
     def __enter__(self):
         self._internal_db.initialise()
+        return self
 
-    #Teardown Connection
+    # Teardown Connection
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._internal_db.terminate()

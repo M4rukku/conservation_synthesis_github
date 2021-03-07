@@ -7,14 +7,18 @@ from sources.frontend.user_queries import ResultFilter
 
 
 def authors_to_string(authors: list):
-    return ";".join(authors)
+    return ";".join(authors) if isinstance(authors, list) else authors
 
 
 def author_string_to_list(author_string):
     return author_string.split(";")
 
 
-class InternalSQLDatabase(abc.ABCMeta):
+class InternalSQLDatabase(metaclass=abc.ABCMeta):
+
+    def __init__(self):
+        pass
+
     @abc.abstractmethod
     def set_checked(self, doi):
         pass
@@ -37,9 +41,11 @@ class InternalSQLDatabase(abc.ABCMeta):
 
 
 class SQLiteDB(InternalSQLDatabase):
-    database_path = Path(__file__) / "file_database" / "article_data.sqlite"
+    database_path = Path(__file__).parent / "file_databases" / \
+                    "article_data.sqlite"
 
     def __init__(self):
+        super().__init__()
         self.con = None
 
     def set_checked(self, doi):
@@ -90,8 +96,10 @@ class SQLiteDB(InternalSQLDatabase):
                 1 if metadata.checked else 0,
                 metadata.classified,
                 1 if metadata.relevant else 0)
-
-        cur.execute(insertion, data)
+        try:
+            cur.execute(insertion, data)
+        except Exception as e:
+            pass
 
     def initialise(self):
         self.con = sqlite3.connect(self.database_path)
