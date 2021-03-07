@@ -1,10 +1,17 @@
+import datetime
 from datetime import date
 
 
 class Daterange:
     def __init__(self, start_date: date, end_date: date):
-        self._start_date = start_date
-        self._end_date = end_date
+        if isinstance(start_date, datetime.datetime):
+            self._start_date = start_date.date()
+        else:
+            self._start_date = start_date
+        if isinstance(end_date, datetime.datetime):
+            self._end_date = end_date.date()
+        else:
+            self._end_date = end_date
 
     @staticmethod
     def from_string(start_date: str, end_date: str):
@@ -68,7 +75,7 @@ class DaterangeUtility:
 
     @staticmethod
     def reduce_ranges(ranges: set) -> set:
-        if len(ranges)==0:
+        if len(ranges) == 0:
             return ranges
         ranges = list(ranges)
         ranges.sort()

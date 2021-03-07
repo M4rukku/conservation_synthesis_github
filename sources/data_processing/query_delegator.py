@@ -5,7 +5,8 @@ from threading import Timer
 import aiohttp
 
 from sources.data_processing.async_mp_queue import AsyncMTQueue
-from sources.data_processing.queries import AbstractQuery, FailedQueryResponse
+from sources.data_processing.queries import AbstractQuery, FailedQueryResponse, \
+    DoiQuery, KeywordQuery
 from . import queries
 from .abstract_webscraping import async_get_abstract_from_doi
 from .repositories import AbstractRepository, DataNotFoundError, \
@@ -149,17 +150,19 @@ class QueryDelegator:
 
         try:
             result = await repo.execute_query(query, session)
-            result.add_journal_data(query.get_journal_data())
             self._query_counter.request_completed(repo.get_identifier())
 
-            if valid(result.metadata.abstract):
+            if isinstance(query, DoiQuery) or isinstance(query, KeywordQuery):
+                result.add_journal_data(query.get_journal_data())
+
+                if not valid(result.metadata.abstract):
+                    try:
+                        result.metadata.abstract = \
+                            await async_get_abstract_from_doi(result.metadata.doi)
+                    except Exception as e:
+                        pass
                 self._response_queue.put(result)
             else:
-                try:
-                    result.metadata.abstract = \
-                        await async_get_abstract_from_doi(result.metadata.doi)
-                except Exception as e:
-                    pass
                 self._response_queue.put(result)
 
         except DataNotFoundError as e:
@@ -178,7 +181,6 @@ class QueryDelegator:
 
                 # Check for Termination Signal
                 if isinstance(query, TerminationFlag):
-                    print("Terminated Loop")
                     timeout = None
                     self._terminated = True
                     if len(asyncio.all_tasks() - initial_tasks) > 0:
@@ -191,7 +193,6 @@ class QueryDelegator:
                     self._terminated = False
                     continue
                 if isinstance(query, TerminationTimeoutFlag):
-                    print("Terminated Loop Forcibly")
                     timeout = query.timeout
                     break
 
