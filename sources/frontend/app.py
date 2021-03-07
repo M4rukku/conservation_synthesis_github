@@ -94,7 +94,10 @@ def handle_results_query():
     # create query handler and process query
     filter_handler = DatabaseResultQueryHandler()
     result = filter_handler.process_filter_query(result_filter)
-    return results_table(result)
+    list_of_result_dicts = []
+    for article in result:
+        list_of_result_dicts.append(vars(article))
+    return results_table(list_of_result_dicts)
 
 @app.route('/sync')
 def sync():

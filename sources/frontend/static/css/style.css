@@ -46,3 +46,10 @@ h2 {
     padding: 12px 24px;
     margin: 4px 2px;
 }
+
+#results-table {
+    max-height: 500px;
+    margin: 25px;
+    overflow-y: scroll;
+    font-size: x-small;
+}
