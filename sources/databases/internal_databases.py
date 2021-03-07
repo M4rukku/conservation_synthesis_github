@@ -49,6 +49,21 @@ class SQLiteDB(InternalSQLDatabase):
                              filter_: ResultFilter):
         cur = self.con.cursor()
 
+        #BASE QUERY
+        entries = [filter_.from_pub_date.isoformat(),
+                   filter_.to_pub_date.isoformat()]
+
+        query = """SELECT * FROM articles 
+        WHERE date(?) >= publication_date
+        AND date(?) <= publication_date """
+
+        # ADD SYNC DATE
+        if filter_.from_sync_date is not None:
+            query += "AND date(?) <= sync_date"
+
+        questionmarks = "?" * len(filter_.journal_names)
+        query += 'AND journal_name IN ({})'.format(', '.join(questionmarks))
+
     def store_article(self, metadata: DBArticleMetadata):
         cur = self.con.cursor()
 

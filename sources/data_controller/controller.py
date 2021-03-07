@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import math
 import threading
@@ -63,7 +64,10 @@ def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
                              journal_issue=article.journal_issue,
                              issn=article.issn,
                              url=f"https://doi.org/{article.doi}",
-                             relevant=relevant)
+                             relevant=relevant,
+                             classified="NA",
+                             checked=False,
+                             sync_date=datetime.date.today().isoformat())
 
 
 class QueryDispatcher:
@@ -155,7 +159,8 @@ class QueryDispatcher:
         classifier = MlModelWrapper()
         cnt = 0
 
-        for article in scraped_articles:
+        for response in scraped_articles:
+            article = response.metadata
             relevant = False
             cnt = cnt + 1
             if article.abstract is not None and article.abstract != "":
