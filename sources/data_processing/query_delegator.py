@@ -145,6 +145,7 @@ class QueryDelegator:
 
         try:
             result = await repo.execute_query(query, session)
+            result.add_journal_data(query.get_journal_data())
             self._response_queue.put(result)
             self._query_counter.request_completed(repo.get_identifier())
         except DataNotFoundError as e:

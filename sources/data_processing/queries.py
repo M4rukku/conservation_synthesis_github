@@ -42,6 +42,16 @@ class ArticleMetadata:
         return returnString
 
 
+@dataclass
+class JournalData:
+    journal_name: str
+    journal_volume: str
+    journal_issue: str
+    publication_date: str
+
+
+
+
 class Response:
     """Class encapsulating a Response.
 
@@ -50,6 +60,21 @@ class Response:
     def __init__(self, query_id: int, metadata: ArticleMetadata):
         self.query_id = query_id
         self.metadata = metadata
+
+    @staticmethod
+    def valid(field: str):
+        return field is not None and field != ""
+
+    def add_journal_data(self, journal_data):
+        if journal_data is not None:
+            if self.valid(journal_data.publication_date):
+                self.metadata.publication_date = journal_data.publication_date
+            if self.valid(journal_data.journal_name):
+                self.metadata.journal_name = journal_data.journal_name
+            if self.valid(journal_data.journal_volume):
+                self.metadata.journal_volume = journal_data.journal_volume
+            if self.valid(journal_data.journal_issue):
+                self.metadata.journal_issue = journal_data.journal_issue
 
 
 class FailedQueryResponse(Response):
@@ -71,6 +96,7 @@ class AbstractQuery(metaclass=abc.ABCMeta):
     def __init__(self, query_id: int):
         self._query_id = query_id
         self._queried_repositories = set()
+        self._journal_data = None
 
     @property
     def query_id(self):
@@ -82,6 +108,12 @@ class AbstractQuery(metaclass=abc.ABCMeta):
     def get_scheduling_information(self):
         return self._queried_repositories
 
+    def add_journal_data(self, journal_data):
+        self._journal_data = journal_data
+
+    def get_journal_data(self):
+        return self._journal_data
+
 
 # Scheduling Information contains data about tried APIs and more?
 # It must at least contain key "tried_connections"
@@ -91,7 +123,7 @@ class AbstractQuery(metaclass=abc.ABCMeta):
 
 
 class DoiQuery(AbstractQuery):
-    def __init__(self, query_id: int, doi_to_query):
+    def __init__(self, query_id: int, doi_to_query: str, ):
         super().__init__(query_id)
         self.doi_to_query = doi_to_query
 

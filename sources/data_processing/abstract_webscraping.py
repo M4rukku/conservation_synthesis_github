@@ -24,7 +24,7 @@ def get_abstract_from_doi(doi: str):
     """
     scraper = cloudscraper.create_scraper()
     doi_data = scraper.get(f"https://www.doi.org/{doi}", timeout=10)
-    doi_bs = BeautifulSoup(doi_data.text)
+    doi_bs = BeautifulSoup(doi_data.text, features="lxml")
 
     if doi_data.url.startswith(
             "https://link.springer.com/"
@@ -33,7 +33,7 @@ def get_abstract_from_doi(doi: str):
             "https://link.springer.com/", "https://link.springer.com/article/"
         )
         doi_data = scraper.get(cleaned_link, timeout=10)
-        doi_bs = BeautifulSoup(doi_data.text)
+        doi_bs = BeautifulSoup(doi_data.text, features="lxml")
 
     # Check whether we landed at a javascript redirect page
     attempts = 0
@@ -45,7 +45,7 @@ def get_abstract_from_doi(doi: str):
         match = pattern.search(doi_bs.head.__str__())
         if match is not None:
             doi_data = scraper.get(unquote(match.group(1)), timeout=10)
-            doi_bs = BeautifulSoup(doi_data.text)
+            doi_bs = BeautifulSoup(doi_data.text, features="lxml")
         else:
             res = doi_bs.body.find_all(
                 id=re.compile("url|redirect", flags=re.IGNORECASE)
@@ -62,7 +62,7 @@ def get_abstract_from_doi(doi: str):
                 if len(red_url) > 0:
                     match = red_url[0]
                     doi_data = scraper.get(unquote(match.group(1)), timeout=10)
-                    doi_bs = BeautifulSoup(doi_data.text)
+                    doi_bs = BeautifulSoup(doi_data.text, features="lxml")
                     continue
 
     doi_bs = doi_bs.body

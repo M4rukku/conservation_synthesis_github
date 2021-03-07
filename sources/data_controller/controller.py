@@ -8,7 +8,7 @@ from sources.data_processing.abstract_webscraping import get_abstract_from_doi
 from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
     JournalDaterangeResponse, FailedQueryResponse, DoiQuery, KeywordQuery, \
-    ArticleMetadata
+    ArticleMetadata, JournalData
 from sources.databases.article_data_db import ArticleRepositoryAPI
 from sources.databases.daterange_util import Daterange, DaterangeUtility
 from sources.databases.db_definitions import DBArticleMetadata
@@ -170,7 +170,7 @@ class QueryDispatcher:
             )
             if cnt > classify_data_cb_freq and classify_data_cb is not None:
                 classify_data_cb(len(scraped_articles_db_format),
-                                 len(scraped_articles_db_format)/
+                                 len(scraped_articles_db_format) /
                                  len(scraped_articles))
                 cnt = 0
 
@@ -214,14 +214,26 @@ class QueryDispatcher:
 
                     for article in articles_wo_abstract:
                         if article.doi is not None and article.doi != "":
-                            ps.delegate_query(
-                                DoiQuery(next(query_id), article.doi))
+                            q = DoiQuery(next(query_id), article.doi)
+                            q.add_journal_data(
+                                JournalData(
+                                    publication_date=article.publication_date,
+                                    journal_name=article.journal_name,
+                                    journal_issue=article.journal_issue,
+                                    journal_volume=article.journal_volume))
+                            ps.delegate_query(q)
                         else:
-                            ps.delegate_query(
-                                KeywordQuery(next(query_id),
+                            q = KeywordQuery(next(query_id),
                                              article.authors,
                                              article.title,
-                                             article.journal_name))
+                                             article.journal_name)
+                            q.add_journal_data(
+                                JournalData(
+                                    publication_date=article.publication_date,
+                                    journal_name=article.journal_name,
+                                    journal_issue=article.journal_issue,
+                                    journal_volume=article.journal_volume))
+                            ps.delegate_query(q)
 
                 elif isinstance(response, Response):
                     cnt = cnt + 1
