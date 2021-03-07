@@ -61,10 +61,22 @@ class ArticleRepositoryAPI:
                              filter_: ResultFilter):
         pass
 
+    def perform_mock_filter_query(self, filter_: ResultFilter):
+        result = []
+        article = DBArticleMetadata(title='Title',
+                                    authors=['Author One, Author Two'],
+                                    doi='https://doi.org/10.1000/182',
+                                    publication_date='2021',
+                                    abstract='Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                                    repo_identifier='ID')
+        result.append(article)
+        return result
+
+
     def store_article(self, metadata: DBArticleMetadata):
         pass
 
-    #Setup COnnection
+    #Setup Connection
     def __enter__(self):
         pass
 

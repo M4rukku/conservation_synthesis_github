@@ -59,7 +59,11 @@ def handle_search_query():
 
 @app.route('/results')
 def results():
-    return render_template('results.html', journal_name = get_journals(), topic = "Sync")
+    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=False, result=None)
+
+@app.route('/results-table')
+def results_table(filter_result):
+    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=True, result=filter_result)
 
 # handle query input on the results page
 @app.route('/handle-results-query', methods=['POST'])
@@ -89,8 +93,8 @@ def handle_results_query():
                               to_sync_date=end_date_object)
     # create query handler and process query
     filter_handler = DatabaseResultQueryHandler()
-    filter_handler.process_filter_query(result_filter)
-    return results()
+    result = filter_handler.process_filter_query(result_filter)
+    return results_table(result)
 
 @app.route('/sync')
 def sync():
