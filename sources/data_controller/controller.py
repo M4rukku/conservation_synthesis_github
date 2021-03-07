@@ -9,9 +9,9 @@ from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
     JournalDaterangeResponse, FailedQueryResponse, DoiQuery, KeywordQuery, \
     ArticleMetadata
-from sources.databases.article_data_db import ArticleRepositoryAPI, \
-    DBArticleMetadata
+from sources.databases.article_data_db import ArticleRepositoryAPI
 from sources.databases.daterange_util import Daterange, DaterangeUtility
+from sources.databases.db_definitions import DBArticleMetadata
 from sources.databases.internal_databases import SQLiteDB, InternalSQLDatabase
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation

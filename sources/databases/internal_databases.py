@@ -2,7 +2,7 @@ import abc
 import sqlite3
 from pathlib import Path
 
-from sources.databases.article_data_db import DBArticleMetadata
+from sources.databases.db_definitions import DBArticleMetadata
 from sources.frontend.user_queries import ResultFilter
 
 
@@ -87,9 +87,9 @@ class SQLiteDB(InternalSQLDatabase):
                 metadata.issn,
                 metadata.url,
                 metadata.sync_date,
-                metadata.checked,
+                1 if metadata.checked else 0,
                 metadata.classified,
-                metadata.relevant)
+                1 if metadata.relevant else 0)
 
         cur.execute(insertion, data)
 
