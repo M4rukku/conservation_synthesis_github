@@ -270,7 +270,7 @@ class QueryDispatcher:
                 days = delta.days
                 # SPLIT INTO BLOCKS OF AT MOST 3 months
                 count = 0
-                split = int(math.ceil(days / 90.0))
+                split = int(math.ceil(days / 180.0))
                 step = days // split
 
                 while True:
