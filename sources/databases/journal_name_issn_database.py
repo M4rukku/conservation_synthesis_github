@@ -6,10 +6,6 @@ class ISSNNotFoundError(Exception):
     pass
 
 
-class JournalNameNotFoundError(Exception):
-    pass
-
-
 class JournalNameIssnDatabase:
     """The Database that associates journal names with their respective ISSN. 
     ... It will first perform a .lower.strip transformation on the journal_name to standardise the mapping.
