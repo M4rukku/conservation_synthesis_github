@@ -5,7 +5,7 @@ from dataclasses import dataclass, asdict
 
 @dataclass
 class DBArticleMetadata:
-    """Class for structuring stored data in the database
+    """Class for structuring data stored in the article database
 
     It contains all possible information we can obtain from a query."""
 

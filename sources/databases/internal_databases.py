@@ -4,6 +4,7 @@ from pathlib import Path
 
 from sources.databases.db_definitions import DBArticleMetadata
 from sources.frontend.user_queries import ResultFilter
+from typing import List
 
 
 def authors_to_string(authors: list):
@@ -15,45 +16,74 @@ def author_string_to_list(author_string):
 
 
 class InternalSQLDatabase(metaclass=abc.ABCMeta):
+    """The InternalSQLDatabase represents the interface that any database needs to implement 
+    ... for it to be used in combination with the Repository pattern defined over ArticleRepositoryAPI.
+    """    
 
     def __init__(self):
         pass
 
     @abc.abstractmethod
     def set_checked(self, doi: str, checked: bool):
+        """Sets the checked attribute in the entry identified by doi to checked.
+
+        Args:
+            doi (str): The article for which we want to set the attribute.
+            checked (bool): To what we want to set checked.
+        """        
         pass
 
     @abc.abstractmethod
-    def perform_filter_query(self, filter_: ResultFilter):
+    def perform_filter_query(self, filter_: ResultFilter) -> List[DBArticleMetadata]:
+        """Returns all articles in the database that fulfill the filter criteria specified in filter_.
+
+        Args:
+            filter_ (ResultFilter): The ResultFilter by which we want to specify the response.
+
+        Returns:
+            List[DBArticleMetadata]: All responses fulfilling the properties specified in filter_.
+        """
         pass
 
     @abc.abstractmethod
     def store_article(self, metadata: DBArticleMetadata):
+        """Takes the metadata object and stores it in the internal database.
+
+        Args:
+            metadata (DBArticleMetadata): The metadata to store in the database.
+        """
         pass
 
     @abc.abstractmethod
     def initialise(self):
+        """Code that initialises the connection to the Database.
+        """        
         pass
 
     @abc.abstractmethod
     def terminate(self):
+        """Code that closes the connection to the database and commits all changes.
+        """        
         pass
 
 
 class SQLiteDB(InternalSQLDatabase):
+    """An Implementation of InternalSQLDatabase based on SQLite. Connects to the database stored at the database_path.
+    """    
+    
     database_path = Path(__file__).parent / "file_databases" / \
                     "article_data.sqlite"
 
     def __init__(self):
         super().__init__()
-        self.con = None
+        self._con = None
 
     def set_checked(self, doi:str, checked:bool):
         pass
 
     def perform_filter_query(self,
                              filter_: ResultFilter):
-        cur = self.con.cursor()
+        cur = self._con.cursor()
 
         #BASE QUERY
         entries = [filter_.from_pub_date.isoformat(),
@@ -71,7 +101,7 @@ class SQLiteDB(InternalSQLDatabase):
         query += 'AND journal_name IN ({})'.format(', '.join(questionmarks))
 
     def store_article(self, metadata: DBArticleMetadata):
-        cur = self.con.cursor()
+        cur = self._con.cursor()
 
         insertion = """INSERT INTO articles(title, authors, doi, 
         publication_date, abstract, repo_identifier, "language", publisher,
@@ -102,8 +132,8 @@ class SQLiteDB(InternalSQLDatabase):
             pass
 
     def initialise(self):
-        self.con = sqlite3.connect(self.database_path)
+        self._con = sqlite3.connect(self.database_path)
 
     def terminate(self):
-        self.con.commit()
-        self.con.close()
+        self._con.commit()
+        self._con.close()
