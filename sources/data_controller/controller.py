@@ -1,6 +1,7 @@
 import datetime
 import itertools
 import math
+import random
 import threading
 from datetime import timedelta
 
@@ -94,12 +95,10 @@ class QueryDispatcher:
         if query.end_date_range <= query.start_date_range:
             raise InvalidTimeRangeError
 
-        unknown_date_ranges = get_unknown_date_ranges(query)
-
         # Dispatch the unknown ranges to be queried in the bg
         thread = threading.Thread(
             target=self._load_and_synchronize_in_background,
-            args=(query, unknown_date_ranges,
+            args=(query,
                   fetch_article_cb, fetch_article_cb_freq,
                   classify_data_cb, classify_data_cb_freq,
                   finished_execution_cb))
@@ -127,13 +126,14 @@ class QueryDispatcher:
         #                       f"Missing Information: {missing_information}")
 
     def _load_and_synchronize_in_background(self, query: UserQueryInformation,
-                                            unknown_date_ranges,
                                             fetch_article_cb,
                                             fetch_article_cb_freq,
                                             classify_data_cb,
                                             classify_data_cb_freq,
                                             finished_execution_cb):
         # Change to Paper Scraper Queries
+
+        unknown_date_ranges = get_unknown_date_ranges(query)
 
         with self.issn_database() as db:
             issns = {name: db.get_issn_from_name(name)
@@ -190,8 +190,13 @@ class QueryDispatcher:
     def _scrape_queries_with_paperscraper(queries, query_id,
                                           fetch_article_cb,
                                           fetch_article_cb_freq):
+
+        random.shuffle(queries)
         scraped_articles = []
         cnt = 0
+        tot = len(queries)
+        sum = 0
+        num = 0
         with PaperScraper() as ps:
             for query in queries:
                 ps.delegate_query(query)
@@ -210,7 +215,8 @@ class QueryDispatcher:
 
                     # scraped_articles.extend(articles_w_abstract)
                     cnt += len(articles_w_abstract)
-
+                    num += 1
+                    sum += len(articles_w_abstract) + len(articles_wo_abstract)
                     for article in articles_wo_abstract:
                         if article.doi is not None and article.doi != "":
                             q = DoiQuery(next(query_id), article.doi)
@@ -243,9 +249,9 @@ class QueryDispatcher:
                 if cnt >= fetch_article_cb_freq \
                         and fetch_article_cb is not None:
                     num_scraped = len(scraped_articles)
-                    fetch_article_cb(num_scraped,
-                                     num_scraped / (num_scraped +
-                                                    ps.delegation_qsize()))
+                    est = min(1.0, num_scraped / (tot * sum / num)) if num>0 \
+                        else 0
+                    fetch_article_cb(num_scraped, est)
                     cnt = 0
 
         if fetch_article_cb is not None:

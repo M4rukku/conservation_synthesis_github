@@ -308,7 +308,7 @@ class OpenAireRepository(AbstractRepository):
 
 
 class CrossrefRepository(AbstractRepository):
-    _polite_pool_mail = ""
+    _polite_pool_mail = ""#"mw784@cam.ac.uk"
 
     @staticmethod
     def get_identifier():
