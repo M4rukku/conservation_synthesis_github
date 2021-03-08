@@ -47,16 +47,16 @@ class DatabaseResultQueryHandler:
     """    
 
     @staticmethod
-    def process_filter_query(filter_: ResultFilter) -> List[DBArticleMetadata]:
+    def process_filter_query(rfilter: ResultFilter) -> List[DBArticleMetadata]:
         """Performs a filter query on the database using the restrictions imposed by ResultFilter.
 
         Args:
-            filter_ (ResultFilter): The filter we have to apply to the data.
+            rfilter (ResultFilter): The filter we have to apply to the data.
 
         Returns:
             List[DBArticleMetadata]: The articles fitting the search criteria
         """        
         result = None
         with ArticleRepositoryAPI(SQLiteDB()) as db:
-            result = db.perform_filter_query(filter_)
+            result = db.perform_filter_query(rfilter)
         return result

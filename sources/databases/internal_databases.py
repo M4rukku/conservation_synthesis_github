@@ -34,14 +34,14 @@ class InternalSQLDatabase(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def perform_filter_query(self, filter_: ResultFilter) -> List[DBArticleMetadata]:
-        """Returns all articles in the database that fulfill the filter criteria specified in filter_.
+    def perform_filter_query(self, rfilter: ResultFilter) -> List[DBArticleMetadata]:
+        """Returns all articles in the database that fulfill the filter criteria specified in rfilter.
 
         Args:
-            filter_ (ResultFilter): The ResultFilter by which we want to specify the response.
+            rfilter (ResultFilter): The ResultFilter by which we want to specify the response.
 
         Returns:
-            List[DBArticleMetadata]: All responses fulfilling the properties specified in filter_.
+            List[DBArticleMetadata]: All responses fulfilling the properties specified in rfilter.
         """
         pass
 
@@ -80,7 +80,8 @@ class SQLiteDB(InternalSQLDatabase):
 
     def set_checked(self, doi:str, checked:bool):
         pass
-
+    
+    #TODO Change _filter to rfilter
     def perform_filter_query(self,
                              filter_: ResultFilter):
         cur = self._con.cursor()
