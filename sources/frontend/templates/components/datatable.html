@@ -13,10 +13,10 @@
         <thead>
         <tbody>	
           <!-- table rows -->
-          {% for dict_item in result %}
+          {% for article in result %}
           <tr>
              <td> {{loop.index}} </td>
-             {% for value in dict_item.values() %}
+             {% for value in article.values() %}
              <td>  {{ value|safe }} </td>
              {% endfor %}
           </tr>

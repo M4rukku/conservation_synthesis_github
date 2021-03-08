@@ -1,21 +1,18 @@
 <div id="criteria">
-    <input type="checkbox" name="relevant_only">
-    <label for="relevant_only">Return relevant articles only</label>
+    {% for c_name, c_label in criteria.items() %}
+        <input type="checkbox" name="{{ c_name }}">
+        <label for="{{ c_name }}">{{ c_label }}</label>
+        <br/>
+    {% endfor %}
     <br/>
-    <input type="checkbox" name="all_journals">
-    <label for="all_journals">Search all journals (else select specific)</label>
-    <br/>
-    <br/>
-    <label for="start_date">{{topic}} Start Date</label> <br/>
-    <input name="start_date" type="date" required>
-    <br/>
-    <br/>
-    <label for="end_date">{{topic}} End Date</label> <br/>
-    <input name="end_date" type="date" required>
-    <br/>
-    <br/>
-    <br/>
+    {% for d_name, d_label in dates.items() %}
+        <label for="{{ d_name }}">{{d_label}} Date</label> <br/>
+        <input name="{{ d_name }}" type="date" required>
+        <br/>
+        <br/>
+    {% endfor %}
+    <br>
     <input id="submit_query" type="submit" value="Submit Query">
     <br/>
-    </div>
+    <br/>
 </div>

@@ -17,7 +17,15 @@ def index():
 
 @app.route('/search')
 def search():
-    return render_template('search.html', journal_name = get_journals(), topic = "Publication")
+    dates = {
+        'start_date': 'Publication Start',
+        'end_date': 'Publication End'
+    }
+    criteria = {
+        'relevant_only': 'Return relevant articles only',
+        'all_journals': 'Search all journals'
+    }
+    return render_template('search.html', journal_name=get_journals(), dates=dates, criteria=criteria)
 
 # mock up content for the journals
 def get_journals():
@@ -59,7 +67,16 @@ def handle_search_query():
 
 @app.route('/results')
 def results():
-    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=False, result=None)
+    dates = {
+        'sync_date': 'Sync',
+        'start_date': 'Publication Start',
+        'end_date': 'Publication End'
+    }
+    criteria = {
+        'relevant_only': 'Return relevant articles only',
+        'all_journals': 'Search all journals'
+    }
+    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=False, result=None, dates=dates, criteria=criteria)
 
 @app.route('/results-table')
 def results_table(filter_result):
@@ -82,15 +99,18 @@ def handle_results_query():
             if request.form.get(journal):
                 journals.append(journal)
     print(journals)
+    sync_date = request.form['sync_date']
+    sync_date_object = datetime.strptime(sync_date, '%Y-%m-%d').date()
     start_date = request.form['start_date']
-    start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
+    start_date_object = datetime.strptime(start_date, '%Y-%m-%d')
     end_date = request.form['end_date']
-    end_date_object = datetime.strptime(end_date, '%Y-%m-%d').date()
+    end_date_object = datetime.strptime(end_date, '%Y-%m-%d')
     # create result filter object
     result_filter = ResultFilter(journal_names=journals,
                               relevant_only=relevant_only,
-                              from_sync_date=start_date_object,
-                              to_sync_date=end_date_object)
+                              from_pub_date=start_date_object,
+                              to_pub_date=end_date_object,
+                              sync_date=sync_date_object,)
     # create query handler and process query
     filter_handler = DatabaseResultQueryHandler()
     result = filter_handler.process_filter_query(result_filter)

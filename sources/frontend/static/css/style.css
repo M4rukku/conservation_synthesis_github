@@ -39,6 +39,7 @@ h2 {
 }
 
 #submit_query {
+    align-self: center;
     background-color: #FD635A;
     border: none;
     border-radius: 4px;
