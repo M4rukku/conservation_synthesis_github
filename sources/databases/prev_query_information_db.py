@@ -7,8 +7,8 @@ from sources.databases.daterange_util import Daterange, DaterangeUtility
 
 class PrevQueryInformation:
     """The Database that stores the previously queried timeframes for each journal. 
-    ... This will help us reduce the number of "double" queries. Usage must always be
-    ... done in combination with the context pattern.
+        This will help us reduce the number of "double" queries. Usage must always be
+        done in combination with the context pattern.
     """    
     document_path = Path(__file__).parent / "file_databases" / \
                     "prev_journal_query_information.json" #Moved to __init__

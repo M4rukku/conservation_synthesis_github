@@ -98,8 +98,8 @@ def strings_approx_equal(fst_string: str, snd_string: str) -> bool:
 
 def get_metadata_best_fit_by_title(ls_metadata: List[ArticleMetadata], real_title:str) -> ArticleMetadata:
     """Takes a list of ArticleMetadata objects and a title; it will select the best fit
-    ... metadata based on the minimal damerau_levensthein_distance between the real_title and the 
-    ... metadata's title. It will return None if no title matches the real_title. 
+        metadata based on the minimal damerau_levensthein_distance between the real_title and the 
+        metadata's title. It will return None if no title matches the real_title. 
 
     Args:
         ls_metadata (List[ArticleMetadata]): A list of candidate articles that might fit our real title.

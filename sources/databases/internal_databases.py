@@ -17,7 +17,7 @@ def author_string_to_list(author_string):
 
 class InternalSQLDatabase(metaclass=abc.ABCMeta):
     """The InternalSQLDatabase represents the interface that any database needs to implement 
-    ... for it to be used in combination with the Repository pattern defined over ArticleRepositoryAPI.
+        for it to be used in combination with the Repository pattern defined over ArticleRepositoryAPI.
     """    
 
     def __init__(self):

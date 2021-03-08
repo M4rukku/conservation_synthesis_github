@@ -8,7 +8,7 @@ class ISSNNotFoundError(Exception):
 
 class JournalNameIssnDatabase:
     """The Database that associates journal names with their respective ISSN. 
-    ... It will first perform a .lower.strip transformation on the journal_name to standardise the mapping.
+        It will first perform a .lower.strip transformation on the journal_name to standardise the mapping.
     
     Must be used with the context pattern.
     """    

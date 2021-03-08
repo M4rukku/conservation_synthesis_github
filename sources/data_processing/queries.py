@@ -45,7 +45,7 @@ class ArticleMetadata:
 @dataclass
 class JournalData:
     """A piece of data that can be added to a response. It is used because different repositories know different things about the data. 
-    ... In order to obtain everything we will use this on the Response. (Mostly on DOIQueries, where I know the journal via the sync method in controller.)
+        In order to obtain everything we will use this on the Response. (Mostly on DOIQueries, where I know the journal via the sync method in controller.)
     """
     journal_name: str
     journal_volume: str
@@ -102,8 +102,8 @@ class JournalDaterangeResponse(Response):
 class AbstractQuery(metaclass=abc.ABCMeta):
     """The interface each query must implement. Queries can be passed to repositories to obtain a response object.
 
-    ... At the very least each query contains an ID and SchedulingInformations (all already queried repositories saved by their identifier.)
-    ... I have added Journal Data as a persistent data storage over query redelegation in the QueryDelegator.
+        At the very least each query contains an ID and SchedulingInformations (all already queried repositories saved by their identifier.)
+        I have added Journal Data as a persistent data storage over query redelegation in the QueryDelegator.
     """    
     def __init__(self, query_id: int):
         self._query_id = query_id

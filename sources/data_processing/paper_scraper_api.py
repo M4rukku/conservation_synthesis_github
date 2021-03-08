@@ -10,16 +10,16 @@ from sources.data_processing.query_delegator import run_delegator, \
 
 class PaperScraper:
     """The PaperScraper class is the public interface of the data processing
-    ... pipeline.
+        pipeline.
 
     Creating a PaperScraper object initialises a new thread from which the
-    ...queries are going to be processed. Communication happens via
-    ...threadsafe AsyncMTQueue queues. The paper scraper holds one queue for incoming
-    ...queries and one for outgoing ones. A query object must extend
-    ...AbstractQuery from queries.py.
+       queries are going to be processed. Communication happens via
+       threadsafe AsyncMTQueue queues. The paper scraper holds one queue for incoming
+       queries and one for outgoing ones. A query object must extend
+       AbstractQuery from queries.py.
     
     The PaperScraper keeps track of all delegated queries via their ids and the outgoing responses. 
-    ...If all queries have been handled the processed_all_queries attribute will become True.
+       If all queries have been handled the processed_all_queries attribute will become True.
     
     Note:
         Must be used in combination with the context pattern.

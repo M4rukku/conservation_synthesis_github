@@ -101,7 +101,7 @@ class DaterangeUtility:
             [Daterange(date(2000, 5, 1), date(2001, 1, 1))]
         """        
 
-        # 4 Cases -- R... Remove, D... Daterange
+        # 4 Cases -- R    Remove, D    Daterange
         # R..D..R..D; D..R..R..D; D..R..D..R; R..D..D..R
         if to_remove.start_date <= range.start_date:
             # R..D..R..D or R..D..D..R
@@ -120,8 +120,8 @@ class DaterangeUtility:
     @staticmethod
     def reduce_ranges(ranges_s: Set[Daterange]) -> Set[Daterange]:
         """Takes a set ranges containing Dateranges and combines adjacent and intersecting Dateranges to a reduced form. 
-           ... The function will i.e. merge Daterange(date(2000, 1, 1), date(2000, 5, 1)) and Daterange(date(2000, 5, 1), date(2001, 1, 1)
-           ... to Daterange(date(2000, 1, 1), date(2001, 1, 1)).
+               The function will i.e. merge Daterange(date(2000, 1, 1), date(2000, 5, 1)) and Daterange(date(2000, 5, 1), date(2001, 1, 1)
+               to Daterange(date(2000, 1, 1), date(2001, 1, 1)).
 
         Args:
             ranges (Set[Daterange]): The set of Dateranges to reduce.
@@ -154,7 +154,7 @@ class DaterangeUtility:
     @staticmethod
     def remove_known_ranges(known_ranges: Set[Daterange], total_range: Set[Daterange]):
         """If any range in known_ranges is in total_range; this function will 
-        ... remove the known_ranges from the set of total_ranges by decomposing each subrange in total_range.
+            remove the known_ranges from the set of total_ranges by decomposing each subrange in total_range.
 
         Args:
             known_ranges (Set[Daterange]): [description]

@@ -9,7 +9,7 @@ from typing import Callable, List
 # handles search user queries
 class UserQueryHandler:
     """Interface between Controller and Frontend.
-    ... Handles synchronisation queries of the user by delegating to the QueryDispatcher.
+       Handles synchronisation queries of the user by delegating to the QueryDispatcher.
     """    
     def __init__(self):
         self._dispatcher = QueryDispatcher()

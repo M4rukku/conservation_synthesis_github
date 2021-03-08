@@ -92,8 +92,8 @@ class QueryCounter:
 
 class QueryDelegator:
     """The QueryDelegator takes queries by waiting on the _query_delegation_queue and executes them by delegating them to appropriate repositories.
-    ... Once a request has been processed, it will be pushed to the _response_queue from which it can be popped.
-    ... Once a TerminationFlag has been pushed, the machine will try to exit.
+        Once a request has been processed, it will be pushed to the _response_queue from which it can be popped.
+        Once a TerminationFlag has been pushed, the machine will try to exit.
     """    
 
     def __init__(self,
@@ -122,7 +122,7 @@ class QueryDelegator:
 
     async def wait_until_repository_available(self, repo_identifier):
         """If there are API restricitons on the amount of queries per second on a repository, this is
-        ... function will ensure that these restrictions are met by waiting on the internal QueryCounter.
+            function will ensure that these restrictions are met by waiting on the internal QueryCounter.
 
         Args:
             repo_identifier (str): [description]
@@ -174,7 +174,7 @@ class QueryDelegator:
 
     async def handle_query(self, query: AbstractQuery, session):
         """Asynchronous execution context that performs the query. If unsuccessful, it will update the scheduling
-        ... information on the query and then reissue the query.
+            information on the query and then reissue the query.
 
         Args:
             query (AbstractQuery): The query to process.
@@ -213,7 +213,7 @@ class QueryDelegator:
 
     async def process_queries(self):
         """The "run" method of the QueryDelegator. Waits on the delegation queue and schedules all requests to be done. 
-        ... Once a TerminationFlag has been passed, it will try to terminate the process.
+            Once a TerminationFlag has been passed, it will try to terminate the process.
         """        
         initial_tasks = set(asyncio.all_tasks())
         async with aiohttp.ClientSession() as session:
