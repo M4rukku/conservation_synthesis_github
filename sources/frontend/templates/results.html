@@ -3,26 +3,29 @@
 {% block content %}
     <h2>Results</h2>
     <div id="description">
-        <p> Filter and display the database of previously searched articles here.<br><br> </p>
+        <p> Filter and display the database of previously searched articles here. Abstract is omitted for readability reasons, follow the URL to read it.</p>
     </div>
     {% if not display_table %}
-    <div>
-        <form action="{{ url_for('handle_results_query') }}" method="POST" enctype="multipart/form-data">
-            <div class="row">
-                <div class="col-md-5">
-                    <h5>General Filter Criteria</h5>
-                    <hr>
-                    {% include 'components/criteria.html' %}
-                <div class="col-md-5">
-                    <h5>Filter Specific Journals</h5>
-                    <hr>
-                    {% include 'components/journals.html' %}
+        <div>
+            <br>
+            <form action="{{ url_for('handle_results_query') }}" method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-5">
+                        <h5>General Filter Criteria</h5>
+                        <hr>
+                        {% include 'components/criteria.html' %}
+                    <div class="col-md-5">
+                        <h5>Filter Specific Journals</h5>
+                        <hr>
+                        {% include 'components/journals.html' %}
+                    </div>
                 </div>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
     {% endif %}
-    <div>
-        {% include 'components/datatable.html' %}
-    </div>
+    {% if display_table %}
+        <div>
+            {% include 'components/datatable.html' %}
+        </div>
+    {% endif %}
 {% endblock %}
