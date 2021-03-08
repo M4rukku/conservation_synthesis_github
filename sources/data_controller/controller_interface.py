@@ -28,9 +28,11 @@ class UserQueryHandler:
 
 # handles results filter queries
 class DatabaseResultQueryHandler:
+    def __init__(self):
+        pass
 
+    # currently calling a mock function instead of real data
     def process_filter_query(self, filter_: ResultFilter):
-        result = None
-        with ArticleRepositoryAPI() as db:
-            result = db.perform_filter_query(filter_)
+        db = ArticleRepositoryAPI()
+        result = db.perform_mock_filter_query(filter_)
         return result

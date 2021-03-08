@@ -3,7 +3,7 @@
         <div class="scroll" id="journal_selector">
             {% for journal in journal_name %}
                 <input type="checkbox" name="{{ journal }}"/>
-                <label>{{ journal }}</label>
+                <label>{{ journal|capitalize}}</label>
                 <br/>
             {% endfor %}
         </div>

@@ -61,10 +61,27 @@ class ArticleRepositoryAPI:
                              filter_: ResultFilter):
         pass
 
+    # mock data for testing table display
+    def perform_mock_filter_query(self, filter_: ResultFilter):
+        result = []
+        article = DBArticleMetadata(title='Title',
+                                    authors=['Author One, Author Two'],
+                                    doi='https://doi.org/10.1000/182',
+                                    publication_date='2021',
+                                    abstract='Abstract',
+                                    repo_identifier='ID')
+        result.append(article)
+        result.append(article)
+        result.append(article)
+        result.append(article)
+        result.append(article)
+        return result
+
+
     def store_article(self, metadata: DBArticleMetadata):
         pass
 
-    #Setup COnnection
+    #Setup Connection
     def __enter__(self):
         pass
 

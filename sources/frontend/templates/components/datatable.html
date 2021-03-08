@@ -1,0 +1,28 @@
+<div class="row">
+  <div class="col-md-10" id="results-table">
+    <table class="table table-bordered table-hover">
+        <!-- table header -->
+        {% if result %}
+        <thead class="thead-light">
+            <tr>
+                <th>#</th>
+              {% for key in result[0] %}
+              <th> {{ key }} </th>
+              {% endfor %}
+           </tr>
+        <thead>
+        <tbody>	
+          <!-- table rows -->
+          {% for article in result %}
+          <tr>
+             <td> {{loop.index}} </td>
+             {% for value in article.values() %}
+             <td>  {{ value|safe }} </td>
+             {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>  
+        {% endif %}
+    </table>
+  </div>
+</div>

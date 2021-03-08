@@ -59,8 +59,7 @@ class ResultFilter:
 
                  from_pub_date: datetime.date = None,
                  to_pub_date: datetime.date = None,
-                 from_sync_date: datetime.date = None,
-                 to_sync_date: datetime.date = None,
+                 sync_date: datetime.date = None,
                  ):
         self.journal_names = journal_names
         self.relevant_only = relevant_only
@@ -69,5 +68,4 @@ class ResultFilter:
 
         self.from_pub_date = from_pub_date
         self.to_pub_date = to_pub_date
-        self.from_sync_date = from_sync_date
-        self.to_sync_date = to_sync_date
+        self.sync_date = sync_date
