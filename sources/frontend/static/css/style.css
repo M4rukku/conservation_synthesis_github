@@ -2,6 +2,10 @@
     color: #B3C200 !important;
 }
 
+.nav-link:hover {
+    color: #B3C200 !important;
+}
+
 .nav-link {
     color: white !important;
 }
@@ -12,10 +16,6 @@
     overflow-y: scroll;
     text-align: left;
     padding-left: 0px;
-}
-
-a:hover {
-    color: #B3C200 !important;
 }
 
 h2 {
@@ -52,4 +52,8 @@ h2 {
     margin: 25px;
     overflow-y: scroll;
     font-size: x-small;
+}
+
+#sidebar {
+    padding-top: 20px !important;
 }
