@@ -44,6 +44,9 @@ class ArticleMetadata:
 
 @dataclass
 class JournalData:
+    """A piece of data that can be added to a response. It is used because different repositories know different things about the data. 
+    ... In order to obtain everything we will use this on the Response. (Mostly on DOIQueries, where I know the journal via the sync method in controller.)
+    """
     journal_name: str
     journal_volume: str
     journal_issue: str
@@ -54,7 +57,7 @@ class JournalData:
 class Response:
     """Class encapsulating a Response.
 
-    It contains all possible information we can obtain from a query."""
+    It contains all information we obtained from a article based query."""
 
     def __init__(self, query_id: int, metadata: ArticleMetadata):
         self.query_id = query_id
@@ -79,11 +82,14 @@ class Response:
 
 
 class FailedQueryResponse(Response):
+    """Class indicating a query failure."""
     def __init__(self, query_id):
         super().__init__(query_id, None)
 
 
 class JournalDaterangeResponse(Response):
+    """Class encapsulating a response from a ISSNDaterangeQuery."""
+    
     def __init__(self, query_id: int, all_articles: list):
         super().__init__(query_id, None)
         self.query_id = query_id
@@ -94,6 +100,11 @@ class JournalDaterangeResponse(Response):
 ################################################################################
 
 class AbstractQuery(metaclass=abc.ABCMeta):
+    """The interface each query must implement. Queries can be passed to repositories to obtain a response object.
+
+    ... At the very least each query contains an ID and SchedulingInformations (all already queried repositories saved by their identifier.)
+    ... I have added Journal Data as a persistent data storage over query redelegation in the QueryDelegator.
+    """    
     def __init__(self, query_id: int):
         self._query_id = query_id
         self._queried_repositories = set()
@@ -124,12 +135,16 @@ class AbstractQuery(metaclass=abc.ABCMeta):
 
 
 class DoiQuery(AbstractQuery):
+    """A Doi query is a query awaiting a response based only on the doi of the article we want.
+    """    
     def __init__(self, query_id: int, doi_to_query: str, ):
         super().__init__(query_id)
         self.doi_to_query = doi_to_query
 
 
 class ISSNTimeIntervalQuery(AbstractQuery):
+    """A ISSNTimeIntervalQuery query is a query awaiting a response based on the ISSN of a journal and a date range.
+    """  
     def __init__(
             self,
             query_id: int,
@@ -144,6 +159,8 @@ class ISSNTimeIntervalQuery(AbstractQuery):
 
 
 class KeywordQuery(AbstractQuery):
+    """A KeywordQuery queries the repositories based on bibliographic data and timeranges.
+    """    
     def __init__(
             self,
             query_id: int,
