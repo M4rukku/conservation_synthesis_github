@@ -20,7 +20,7 @@ class InternalSQLDatabase(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def set_checked(self, doi):
+    def set_checked(self, doi: str, checked: bool):
         pass
 
     @abc.abstractmethod
@@ -48,7 +48,7 @@ class SQLiteDB(InternalSQLDatabase):
         super().__init__()
         self.con = None
 
-    def set_checked(self, doi):
+    def set_checked(self, doi:str, checked:bool):
         pass
 
     def perform_filter_query(self,
