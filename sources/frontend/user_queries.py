@@ -43,7 +43,7 @@ class UserQueryInformation:
     classification_restriction: str = None
 
 
-class UserQueryResponse:
+class UserQueryResponse: #TODO Remove
     def __init__(self, processed_data: list, message=None):
         self.processed_data = processed_data  # Data from Database
         self.message = message  # What still needs to be gathered (intervals)i
@@ -53,12 +53,12 @@ class UserQueryResponse:
 class ResultFilter:
     def __init__(self,
                  journal_names: list,
+                 from_pub_date: datetime.date,
+                 to_pub_date: datetime.date,
+                 
                  relevant_only: bool = None,
                  remove_checked_articles: bool = None,
                  classification: str = None,
-
-                 from_pub_date: datetime.date = None,
-                 to_pub_date: datetime.date = None,
                  from_sync_date: datetime.date = None,
                  to_sync_date: datetime.date = None,
                  ):
