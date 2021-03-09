@@ -154,7 +154,8 @@ def sync():
 
 
 def download_callback(articles_downloaded_so_far: int, percentage_of_total: float):
-    pass
+    update_download_bar(percentage_of_total)
+    update_page()
 
 def classification_callback(articles_classified_so_far: int, percentage_of_total: float):
     pass
