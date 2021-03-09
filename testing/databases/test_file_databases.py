@@ -8,6 +8,7 @@ from sources.databases.db_definitions import DBArticleMetadata
 from sources.databases.internal_databases import SQLiteDB
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation
+from sources.frontend.user_queries import ResultFilter
 
 
 class TestPrevQueryInformationDatabase:
@@ -79,3 +80,17 @@ CREATE TABLE "articles" (
 	"classified"	TEXT,
 	"relevant"	INTEGER
 )'''
+
+
+def test_filter_query():
+    with ArticleRepositoryAPI(SQLiteDB()) as db:
+        print("Connection established: ")
+        output = db.perform_filter_query(filter_=ResultFilter(from_pub_date=date(2000, 1, 1),
+                                                              to_pub_date=date(2002, 1, 1),
+                                                              from_sync_date=date(2021, 3, 1),
+                                                              to_sync_date=date(2021, 3, 10),
+                                                              journal_names=["Journal of Applied Ecology",
+                                                                             "Oryx"],
+                                                              remove_checked_articles=False))
+
+        print(output)

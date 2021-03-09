@@ -55,20 +55,43 @@ class SQLiteDB(InternalSQLDatabase):
                              filter_: ResultFilter):
         cur = self.con.cursor()
 
-        #BASE QUERY
+        # BASE QUERY
         entries = [filter_.from_pub_date.isoformat(),
                    filter_.to_pub_date.isoformat()]
 
-        query = """SELECT * FROM articles 
-        WHERE date(?) >= publication_date
-        AND date(?) <= publication_date """
+        query = "SELECT * FROM articles WHERE publication_date >= date(?) AND publication_date <= date(?)"
 
-        # ADD SYNC DATE
+        # SYNC DATES
         if filter_.from_sync_date is not None:
-            query += "AND date(?) <= sync_date"
+            entries.append(filter_.from_sync_date.isoformat())
+            query += " AND sync_date >= date(?)"
 
-        questionmarks = "?" * len(filter_.journal_names)
-        query += 'AND journal_name IN ({})'.format(', '.join(questionmarks))
+        if filter_.to_sync_date is not None:
+            entries.append(filter_.to_sync_date.isoformat())
+            query += " AND sync_date <= date(?)"
+
+        # JOURNAL LIST
+        entries.extend(filter_.journal_names)
+        journal_placeholders = "?" * len(filter_.journal_names)
+        query += " AND journal_name IN ({})".format(', '.join(journal_placeholders))
+
+        # BOOLS
+        if filter_.relevant_only:
+            query += " AND relevant = 1"
+
+        if filter_.remove_checked_articles:
+            query += " AND checked = 0"
+
+        # CLASSIFICATION
+        if filter_.classification is not None:
+            entries.append(filter_.classification)
+            query += " AND classified = ?"
+
+        try:
+            cur.execute(query, entries)
+            return cur.fetchall()
+        except Exception as e:
+            return None
 
     def store_article(self, metadata: DBArticleMetadata):
         cur = self.con.cursor()
