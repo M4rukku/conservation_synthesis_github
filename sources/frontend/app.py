@@ -1,3 +1,4 @@
+import math
 from datetime import datetime, date
 from pathlib import Path
 
@@ -13,7 +14,7 @@ from sources.frontend.user_queries import UserQueryInformation
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "'secret!'"
-app.config['DEBUG']=True
+app.config['DEBUG'] = True
 socketio = SocketIO(app)
 
 
@@ -77,6 +78,7 @@ def handle_search_query():
     user_query_handler = UserQueryHandler()
 
     user_query_handler.process_user_query(user_query,
+                                          start_execution_cb=start_executation_cb(),
                                           classify_data_cb=classify_data_cb,
                                           fetch_article_cb=fetch_article_cb,
                                           finished_execution_cb=finished_execution_cb,
@@ -192,6 +194,7 @@ def convert_result(result_list):
         list_of_result_dicts.append(article_dict)
     return list_of_result_dicts
 
+
 # helper function to convert list of authors into one string
 def convert_list_to_string(list_of_strings):
     final_string = ''
@@ -200,28 +203,44 @@ def convert_list_to_string(list_of_strings):
     final_string = final_string + list_of_strings[len(list_of_strings) - 1]
     return final_string
 
-#global variables for updating the sync pageSize
+
+# global variables for updating the sync pageSize
 download_stats = 0
 classification_stats = 0
 finished_stats = False
 
+
 @app.route('/sync')
 def sync():
-    return render_template('sync.html',download_stats=download_stats,classification_stats=classification_stats,finished_stats=finished_stats)
+    global finished_stats
+    global download_stats
+    global classification_stats
+    return render_template('sync.html', download_stats=download_stats, classification_stats=classification_stats,
+                           finished_stats=finished_stats)
+
 
 def fetch_article_cb(articles_downloaded_so_far: int, percentage_of_total: float):
-    download_stats = math.trunc(percentage_of_total*100)
-    socketio.emit('download_update',{'download_stats':download_stats},namespace='/sync')
+    global download_stats
+    download_stats = math.trunc(percentage_of_total * 100)
+    socketio.emit('download_update', {'download_stats': download_stats}, namespace='/sync')
+
 
 def classify_data_cb(articles_classified_so_far: int, percentage_of_total: float):
-    classification_stats = math.trunc(percentage_of_total*100)
-    socketio.emit('classification_update',{'classification_stats':classification_stats},namespace='/sync')
+    global classification_stats
+    classification_stats = math.trunc(percentage_of_total * 100)
+    socketio.emit('classification_update', {'classification_stats': classification_stats}, namespace='/sync')
+
 
 def finished_execution_cb():
+    global finished_stats
     finished_stats = True
-    socketio.emit('finished_update',{'finished_stats':finished_stats},namespace='/sync')
+    socketio.emit('finished_update', {'finished_stats': finished_stats}, namespace='/sync')
+
 
 def start_executation_cb():
+    global finished_stats
+    global download_stats
+    global classification_stats
     finished_stats = False
     download_stats = 0
     classification_stats = 0
