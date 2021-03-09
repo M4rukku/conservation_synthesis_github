@@ -78,8 +78,16 @@ class SQLiteDB(InternalSQLDatabase):
         super().__init__()
         self._con = None
 
-    def set_checked(self, doi:str, checked:bool):
-        pass
+    def set_checked(self, doi: str, checked: bool):
+        cur = self._con.cursor()
+
+        entries = [checked, doi]
+        update = "UPDATE articles SET checked = ? WHERE doi = ?"
+
+        try:
+            cur.execute(update, entries)
+        except Exception as e:
+            pass
 
     def perform_filter_query(self,
                              rfilter: ResultFilter):
