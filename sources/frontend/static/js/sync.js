@@ -22,9 +22,9 @@ $(document).ready(function(){
     socket.on('finished_update', function(msg) {
         //debug purpose logging
         console.log("Received finished_update" + msg.finished_stats);
-        
+
         var finished = (msg.finished_stats==='true');
-        $("#finished").text("finished").removeClass("btn-secondary").addClass("btn-info");
+        $("#finished").text("Finished").removeClass("btn-secondary").addClass("btn-info");
     });
 
 });
