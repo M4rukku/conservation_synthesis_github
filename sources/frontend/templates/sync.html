@@ -7,16 +7,24 @@
     <hr>
     Paper Downloading Status: 
     <div class="progress">
-        <div class="progress-bar bg-info" role="progressbar"  style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+        <div class="progress-bar bg-info" role="progressbar"  style="width: {{download_stats}}%" aria-valuenow="{{download_stats}}" aria-valuemin="0" aria-valuemax="100">{{download_stats}}%</div>
         <hr>
     </div>
     Paper Classification Status: 
     <div class="progress">
-        <div class="progress-bar bg-info" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+        <div class="progress-bar bg-info" role="progressbar" style="width: {{classification_stats}}%" aria-valuenow="{{classification_stats}}" aria-valuemin="0" aria-valuemax="100">{{classification_stats}}%</div>
     </div>
-    finished Status: 
+    Finished Status: 
+    {% if finished_stats %}
     <div>
-        <button type="button" class="btn btn-secondary btn-lg">Not Finished</button>
+
+        <button type="button" class="btn btn-info btn-lg" disabled>Finished</button>
     </div>
+    {% else %}
+    <div>
+        <button type="button" class="btn btn-secondary btn-lg" disabled>Not Finished</button>        
+    </div>
+    {% endif %}
+
     </div>
 {% endblock %}

@@ -154,7 +154,7 @@ finished_stats = False
 
 @app.route('/sync')
 def sync():
-    return render_template('sync.html')
+    return render_template('sync.html',download_stats=download_stats,classification_stats=classification_stats,finished_stats=finished_stats)
 
 
 def fetch_article_cb(articles_downloaded_so_far: int, percentage_of_total: float):
@@ -166,6 +166,9 @@ def classify_data_cb(articles_classified_so_far: int, percentage_of_total: float
 
 def finished_execution_cb():
     finished_stats = True
+
+def start_executation_cb():
+    finished_stats = False
 
 #run flask under debug mode for development
 if __name__ == '__main__':
