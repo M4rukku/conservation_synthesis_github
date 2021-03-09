@@ -8,5 +8,4 @@ pandas==1.2.1
 recordclass==0.14.3
 jellyfish==0.8.2
 beautifulsoup4==4.9.3
-dataclasses==0.8
 PyYAML==5.4.1
