@@ -4,9 +4,7 @@ pytest==6.2.2
 habanero==0.7.4
 cloudscraper==1.2.56
 Flask==1.1.2
-pandas==1.2.1
-recordclass==0.14.3
+pandas==1.1.5
 jellyfish==0.8.2
 beautifulsoup4==4.9.3
-dataclasses==0.8
 PyYAML==5.4.1

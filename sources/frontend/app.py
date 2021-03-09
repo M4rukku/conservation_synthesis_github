@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 from flask import Flask, render_template, request
@@ -32,7 +33,9 @@ def search():
 # mock up content for the journals
 def get_journals():
     # read in the frequency value, notice the relative path
-    table = pd.read_json("frontend_data/journal_usage_frequency.pd.json")
+    path = Path(__file__).parent / "frontend_data" / "journal_usage_frequency.pd.json"
+    with path.open("rb") as f:
+        table = pd.read_json(f)
     table.sort_values(by='counts',ascending=False,inplace=True)
     journal_list = table.index.tolist()
     # remove empty list
