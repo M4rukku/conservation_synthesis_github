@@ -1,8 +1,10 @@
 import math
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
 from flask import Flask, render_template, request
-from flask_socketio import SocketIO,emit
+from flask_socketio import SocketIO
+
 from sources.data_controller.controller_interface import \
     DatabaseResultQueryHandler
 from sources.data_controller.controller_interface import UserQueryHandler
@@ -65,7 +67,12 @@ def handle_search_query():
     user_query = UserQueryInformation(journals, start_date_object, end_date_object, relevant_only)
     # create query handler and process query
     user_query_handler = UserQueryHandler()
-    user_query_handler.process_user_query(user_query)
+
+    user_query_handler.process_user_query(user_query,
+                                          classify_data_cb=classify_data_cb,
+                                          fetch_article_cb=fetch_article_cb,
+                                          finished_execution_cb=finished_execution_cb,
+                                          )
     return search()
 
 @app.route('/results')
