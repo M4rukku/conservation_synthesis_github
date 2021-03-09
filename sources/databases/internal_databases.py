@@ -1,10 +1,10 @@
 import abc
 import sqlite3
 from pathlib import Path
+from typing import List
 
 from sources.databases.db_definitions import DBArticleMetadata
 from sources.frontend.user_queries import ResultFilter
-from typing import List
 
 
 def authors_to_string(authors: list):
@@ -72,7 +72,7 @@ class SQLiteDB(InternalSQLDatabase):
     """    
     
     database_path = Path(__file__).parent / "file_databases" / \
-                    "article_data.sqlite"
+                    "article_data_untracked.sqlite"
 
     def __init__(self):
         super().__init__()
