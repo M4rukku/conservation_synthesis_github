@@ -11,10 +11,12 @@ from sources.frontend.user_queries import UserQueryInformation
 
 app = Flask(__name__)
 
+# display about page
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# display search query form
 @app.route('/search')
 def search():
     dates = {
@@ -65,6 +67,7 @@ def handle_search_query():
     user_query_handler.process_user_query(user_query)
     return search()
 
+# display result filter query form
 @app.route('/results')
 def results():
     dates = {
@@ -76,11 +79,36 @@ def results():
         'relevant_only': 'Return relevant articles only',
         'all_journals': 'Search all journals'
     }
-    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=False, result=None, dates=dates, criteria=criteria)
+    return render_template('results.html',
+                            journal_name=get_journals(),
+                            topic="Sync",
+                            display_table=False,
+                            result=None,
+                            dates=dates,
+                            criteria=criteria)
 
+global_filter_result = []
+
+# display table of filter results (with pagination)
 @app.route('/results-table')
-def results_table(filter_result):
-    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=True, result=filter_result)
+def results_table():
+    current_page = request.args.get('page', 1, type=int)
+    articles_per_page = 10
+    max_page = len(global_filter_result) // articles_per_page + 1
+    from_article = (current_page - 1) * articles_per_page 
+    if current_page == max_page:
+        to_article = from_article + (len(global_filter_result) - ((max_page - 1) * articles_per_page))
+    else:
+        to_article = from_article + articles_per_page 
+    articles_to_show = global_filter_result[from_article:to_article]
+    return render_template('results.html',
+                            journal_name=get_journals(),
+                            topic="Sync",
+                            display_table=True,
+                            result=articles_to_show,
+                            current_page=current_page,
+                            max_page=max_page,
+                            articles_per_page=articles_per_page)
 
 # handle query input on the results page
 @app.route('/handle-results-query', methods=['POST'])
@@ -98,7 +126,6 @@ def handle_results_query():
         for journal in all_journals:
             if request.form.get(journal):
                 journals.append(journal)
-    print(journals)
     sync_date = request.form['sync_date']
     sync_date_object = datetime.strptime(sync_date, '%Y-%m-%d').date()
     start_date = request.form['start_date']
@@ -115,7 +142,10 @@ def handle_results_query():
     filter_handler = DatabaseResultQueryHandler()
     result = filter_handler.process_filter_query(result_filter)
     list_of_result_dicts = convert_result(result)
-    return results_table(list_of_result_dicts)
+    global global_filter_result 
+    global_filter_result = list_of_result_dicts
+    return results_table()
+
 
 # helper function that converts list of objects into dict that can be displayed as a table
 def convert_result(result_list):

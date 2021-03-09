@@ -75,6 +75,9 @@ class ArticleRepositoryAPI:
         result.append(article)
         result.append(article)
         result.append(article)
+        result.append(article)
+        result.append(article)
+        result.append(article)
         return result
 
 
