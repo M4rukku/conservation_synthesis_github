@@ -11,7 +11,7 @@ For compatiability reason, this writeup chooses `ubuntu 18.04LTS` and non-headle
 
 Please download the Ubuntu release image from [ubuntu download page](https://releases.ubuntu.com/18.04.5/) and follow the installation guide from [here](https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview).
 
-Please note that due to the image size, I recomend at least provision 100G of hard drive for the ubuntu system.
+Please note that due to the image size, I recomend at least provision **100G** of hard drive for the ubuntu system.
 
 # Installing NVIDIA Driver on Ubuntu
 
