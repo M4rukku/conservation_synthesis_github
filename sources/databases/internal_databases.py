@@ -18,7 +18,7 @@ def author_string_to_list(author_string):
 class InternalSQLDatabase(metaclass=abc.ABCMeta):
     """The InternalSQLDatabase represents the interface that any database needs to implement 
         for it to be used in combination with the Repository pattern defined over ArticleRepositoryAPI.
-    """    
+    """
 
     def __init__(self):
         pass
@@ -30,7 +30,7 @@ class InternalSQLDatabase(metaclass=abc.ABCMeta):
         Args:
             doi (str): The article for which we want to set the attribute.
             checked (bool): To what we want to set checked.
-        """        
+        """
         pass
 
     @abc.abstractmethod
@@ -57,20 +57,20 @@ class InternalSQLDatabase(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def initialise(self):
         """Code that initialises the connection to the Database.
-        """        
+        """
         pass
 
     @abc.abstractmethod
     def terminate(self):
         """Code that closes the connection to the database and commits all changes.
-        """        
+        """
         pass
 
 
 class SQLiteDB(InternalSQLDatabase):
     """An Implementation of InternalSQLDatabase based on SQLite. Connects to the database stored at the database_path.
-    """    
-    
+    """
+
     database_path = Path(__file__).parent / "file_databases" / \
                     "article_data_untracked.sqlite"
 
@@ -88,6 +88,27 @@ class SQLiteDB(InternalSQLDatabase):
             cur.execute(update, entries)
         except Exception as e:
             pass
+
+    @staticmethod
+    def map_tuple_to_db_article(tuple):
+        return DBArticleMetadata(title=tuple[1],
+                                 authors=author_string_to_list(tuple[2]),
+                                 doi=tuple[3],
+                                 publication_date=tuple[4],
+                                 abstract=tuple[5],
+                                 repo_identifier=tuple[6],
+                                 language=tuple[7],
+                                 publisher=tuple[8],
+                                 journal_name=tuple[9],
+                                 journal_volume=tuple[10],
+                                 journal_issue=tuple[11],
+                                 issn=tuple[12],
+                                 url=tuple[13],
+                                 sync_date=tuple[14],
+                                 checked=False if tuple[15] == 0 else True,
+                                 classified=tuple[16],
+                                 relevant=False if tuple[17] == 0 else True,
+                                 )
 
     def perform_filter_query(self,
                              rfilter: ResultFilter):
@@ -127,7 +148,9 @@ class SQLiteDB(InternalSQLDatabase):
 
         try:
             cur.execute(query, entries)
-            return cur.fetchall()
+            result = cur.fetchall()
+            result = [self.map_tuple_to_db_article(r) for r in result]
+            return result
         except Exception as e:
             return None
 
