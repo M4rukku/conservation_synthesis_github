@@ -1,28 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.min.js" integrity="sha512-fANg+hKlIqBdTzgYBT8eFIlZgKYTLij0S7Afvda/rw/Rm33I9+74HSdR1Urz2zGgCSZiQweMin46+l1obnoLWQ==" crossorigin="anonymous"></script>
+    <script src="static/js/sync.js"></script>
+
     <div>
     <h2>Sync</h2>
     <p>This page display the synchronization status of the current job. When the <em>Finished Status</em> changes, that means the current job is completed.</p>
     <div class="col-md-8">
     <hr>
     Paper Downloading Status: 
-    <div class="progress">
+    <div class="progress" id="download">
         <div class="progress-bar bg-info" role="progressbar"  style="width: {{download_stats}}%" aria-valuenow="{{download_stats}}" aria-valuemin="0" aria-valuemax="100">{{download_stats}}%</div>
         <hr>
     </div>
     Paper Classification Status: 
-    <div class="progress">
+    <div class="progress" id="classification">
         <div class="progress-bar bg-info" role="progressbar" style="width: {{classification_stats}}%" aria-valuenow="{{classification_stats}}" aria-valuemin="0" aria-valuemax="100">{{classification_stats}}%</div>
     </div>
     Finished Status: 
     {% if finished_stats %}
-    <div>
-
+    <div id="finished" class="visible">
         <button type="button" class="btn btn-info btn-lg" disabled>Finished</button>
     </div>
     {% else %}
-    <div>
+    <div id="not_finished" class="visible">
         <button type="button" class="btn btn-secondary btn-lg" disabled>Not Finished</button>        
     </div>
     {% endif %}
