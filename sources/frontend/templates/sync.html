@@ -10,22 +10,21 @@
     <div class="col-md-8">
     <hr>
     Paper Downloading Status: 
-    <div class="progress" id="download">
-        <div class="progress-bar bg-info" role="progressbar"  style="width: {{download_stats}}%" aria-valuenow="{{download_stats}}" aria-valuemin="0" aria-valuemax="100">{{download_stats}}%</div>
-        <hr>
+    <div class="progress" >
+        <div id="download" class="progress-bar bg-info" role="progressbar"  style="width: {{download_stats}}%" aria-valuenow="{{download_stats}}" aria-valuemin="0" aria-valuemax="100">{{download_stats}}%</div>
     </div>
     Paper Classification Status: 
-    <div class="progress" id="classification">
-        <div class="progress-bar bg-info" role="progressbar" style="width: {{classification_stats}}%" aria-valuenow="{{classification_stats}}" aria-valuemin="0" aria-valuemax="100">{{classification_stats}}%</div>
+    <div class="progress" >
+        <div  id="classification" class="progress-bar bg-info" role="progressbar" style="width: {{classification_stats}}%" aria-valuenow="{{classification_stats}}" aria-valuemin="0" aria-valuemax="100">{{classification_stats}}%</div>
     </div>
     Finished Status: 
     {% if finished_stats %}
-    <div id="finished" class="visible">
-        <button type="button" class="btn btn-info btn-lg" disabled>Finished</button>
+    <div>
+        <button id="finished" type="button" class="btn btn-info btn-lg" disabled>Finished</button>
     </div>
     {% else %}
-    <div id="not_finished" class="visible">
-        <button type="button" class="btn btn-secondary btn-lg" disabled>Not Finished</button>        
+    <div>
+        <button id="finished" type="button" class="btn btn-secondary btn-lg" disabled>Not Finished</button>        
     </div>
     {% endif %}
 
