@@ -80,42 +80,41 @@ class SQLiteDB(InternalSQLDatabase):
 
     def set_checked(self, doi:str, checked:bool):
         pass
-    
-    #TODO Change _filter to rfilter
+
     def perform_filter_query(self,
-                             filter_: ResultFilter):
+                             rfilter: ResultFilter):
         cur = self._con.cursor()
 
         # BASE QUERY
-        entries = [filter_.from_pub_date.isoformat(),
-                   filter_.to_pub_date.isoformat()]
+        entries = [rfilter.from_pub_date.isoformat(),
+                   rfilter.to_pub_date.isoformat()]
 
         query = "SELECT * FROM articles WHERE publication_date >= date(?) AND publication_date <= date(?)"
 
         # SYNC DATES
-        if filter_.from_sync_date is not None:
-            entries.append(filter_.from_sync_date.isoformat())
+        if rfilter.from_sync_date is not None:
+            entries.append(rfilter.from_sync_date.isoformat())
             query += " AND sync_date >= date(?)"
 
-        if filter_.to_sync_date is not None:
-            entries.append(filter_.to_sync_date.isoformat())
+        if rfilter.to_sync_date is not None:
+            entries.append(rfilter.to_sync_date.isoformat())
             query += " AND sync_date <= date(?)"
 
         # JOURNAL LIST
-        entries.extend(filter_.journal_names)
-        journal_placeholders = "?" * len(filter_.journal_names)
+        entries.extend(rfilter.journal_names)
+        journal_placeholders = "?" * len(rfilter.journal_names)
         query += " AND journal_name IN ({})".format(', '.join(journal_placeholders))
 
         # BOOLS
-        if filter_.relevant_only:
+        if rfilter.relevant_only:
             query += " AND relevant = 1"
 
-        if filter_.remove_checked_articles:
+        if rfilter.remove_checked_articles:
             query += " AND checked = 0"
 
         # CLASSIFICATION
-        if filter_.classification is not None:
-            entries.append(filter_.classification)
+        if rfilter.classification is not None:
+            entries.append(rfilter.classification)
             query += " AND classified = ?"
 
         try:
