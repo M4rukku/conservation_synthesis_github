@@ -8,3 +8,9 @@ services:
       - ..:/app
     environment:
       FLASK_ENV: development
+    deploy:
+      resources: 
+        reservations:
+          devices:
+          - capabilities: [gpu]
+            driver: nvidia
