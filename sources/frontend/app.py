@@ -153,14 +153,14 @@ def sync():
     return render_template('sync.html', download_status=get_sync_status()[0],classification_status=get_sync_status()[1],search_status=get_sync_status()[2])
 
 
-def download_callback(articles_downloaded_so_far: int, percentage_of_total: float):
+def fetch_article_cb(articles_downloaded_so_far: int, percentage_of_total: float):
     update_download_bar(percentage_of_total)
     update_page()
 
-def classification_callback(articles_classified_so_far: int, percentage_of_total: float):
+def classify_data_cb(articles_classified_so_far: int, percentage_of_total: float):
     pass
 
-def finished_callback():
+def finished_execution_cb():
     pass
 
 def get_sync_status():
