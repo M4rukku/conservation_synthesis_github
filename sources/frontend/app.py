@@ -2,7 +2,7 @@ import math
 import pandas as pd
 from datetime import datetime
 from flask import Flask, render_template, request
-
+from flask_socketio import SocketIO,emit
 from sources.data_controller.controller_interface import \
     DatabaseResultQueryHandler
 from sources.data_controller.controller_interface import UserQueryHandler
@@ -10,6 +10,9 @@ from sources.frontend.user_queries import ResultFilter
 from sources.frontend.user_queries import UserQueryInformation
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = "'secret!'"
+app.config['DEBUG']=True
+socketio = SocketIO(app)
 
 @app.route('/')
 def index():
@@ -158,12 +161,15 @@ def sync():
 
 def fetch_article_cb(articles_downloaded_so_far: int, percentage_of_total: float):
     download_stats = math.trunc(percentage_of_total*100)
+    socketio.emit('download_update',{'download_stats':download_stats},namespace='/sync')
 
 def classify_data_cb(articles_classified_so_far: int, percentage_of_total: float):
     classification_stats = math.trunc(percentage_of_total*100)
+    socketio.emit('classification_update',{'classification_stats':classification_stats},namespace='/sync')
 
 def finished_execution_cb():
     finished_stats = True
+    socketio.emit('finished_update',{'finished_stats':finished_stats},namespace='/sync')
 
 def start_executation_cb():
     finished_stats = False
@@ -172,4 +178,4 @@ def start_executation_cb():
 
 #run flask under debug mode for development
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app)
