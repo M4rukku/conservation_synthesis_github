@@ -93,6 +93,7 @@ class QueryDispatcher:
             self.article_database: InternalSQLDatabase = article_database
 
     def process_query(self, query: UserQueryInformation,
+                      start_execution_cb,
                       fetch_article_cb, fetch_article_cb_freq,
                       classify_data_cb, classify_data_cb_freq,
                       finished_execution_cb) -> None:
@@ -101,6 +102,7 @@ class QueryDispatcher:
 
         Args:
             query (UserQueryInformation): The Synchronisation query to perform.
+            start_execution_cb (Callable[[], None]): The callback to be called at the start of program execution.
             fetch_article_cb (Callable[[int, float], None], optional): The callback that will be called after fetch_article_cb_freq articles have been queried. Defaults to None.
             fetch_article_cb_freq (int, optional): The frequency of calling fetch_article_cb. Defaults to 100.
             classify_data_cb (Callable[[int, float], None], optional): The callback that will be called after classify_data_cb_freq articles have been classified. Defaults to None.
@@ -146,6 +148,7 @@ class QueryDispatcher:
         #                       f"Missing Information: {missing_information}")
 
     def _load_and_synchronize_in_background(self, query: UserQueryInformation,
+                                            start_execution_cb,
                                             fetch_article_cb,
                                             fetch_article_cb_freq,
                                             classify_data_cb,
@@ -171,6 +174,8 @@ class QueryDispatcher:
             InvalidTimeRangeError: Raised when timerange is invalid iff end_date < start_date
         """
         # Change to Paper Scraper Queries
+        if start_execution_cb is not None:
+            start_execution_cb()
 
         unknown_date_ranges = get_unknown_date_ranges(query)
 

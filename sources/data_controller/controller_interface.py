@@ -1,10 +1,12 @@
-from sources.databases.db_definitions import DBArticleMetadata
+from typing import Callable, List
+
 from sources.data_controller.controller import QueryDispatcher
 from sources.databases.article_data_db import ArticleRepositoryAPI
+from sources.databases.db_definitions import DBArticleMetadata
 from sources.databases.internal_databases import SQLiteDB
 from sources.frontend.user_queries import ResultFilter
 from sources.frontend.user_queries import UserQueryInformation
-from typing import Callable, List
+
 
 # handles search user queries
 class UserQueryHandler:
@@ -16,6 +18,7 @@ class UserQueryHandler:
 
     def process_user_query(self,
                            query: UserQueryInformation,
+                           start_execution_cb: Callable[[], None] = None,
                            fetch_article_cb: Callable[[int, float], None]=None,
                            fetch_article_cb_freq=100,
                            classify_data_cb: Callable[[int, float], None]=None,
@@ -26,6 +29,7 @@ class UserQueryHandler:
 
         Args:
             query (UserQueryInformation): The Synchronisation query to perform.
+            start_execution_cb (Callable[[], None]): The callback to be called at the start of program execution.
             fetch_article_cb (Callable[[int, float], None], optional): The callback that will be called after fetch_article_cb_freq articles have been queried. Defaults to None.
             fetch_article_cb_freq (int, optional): The frequency of calling fetch_article_cb. Defaults to 100.
             classify_data_cb (Callable[[int, float], None], optional): The callback that will be called after classify_data_cb_freq articles have been classified. Defaults to None.
@@ -33,6 +37,7 @@ class UserQueryHandler:
             finished_execution_cb (Callable[[], None], optional): The callback to be called once the query has successfully finished. Defaults to None.
         """
         self._dispatcher.process_query(query,
+                                       start_execution_cb,
                                        fetch_article_cb,
                                        fetch_article_cb_freq,
                                        classify_data_cb,
