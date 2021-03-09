@@ -32,7 +32,7 @@ def get_unknown_date_ranges(query: UserQueryInformation) -> Dict[str, Set[Datera
 
     Returns:
         Dict[str, Set[Daterange]]: The dateranges we need to query for each journal name.
-    """    
+    """
     journal_names = query.journals_to_query
 
     # Get Data We already have:
@@ -55,8 +55,16 @@ def get_unknown_date_ranges(query: UserQueryInformation) -> Dict[str, Set[Datera
         query_ranges[name] = \
             DaterangeUtility.remove_known_ranges(known_ranges, range)
 
-    return query_ranges
+    # By default we always want to "requery" the top 1 Month of articles, if the query asks for a
+    # current timerange
+    if datetime.date.today() >= query.end_date_range >= (datetime.date.today() - timedelta(days=15)):
+        last_month = (datetime.date.today() - timedelta(days=30))
+        start_interval = max(last_month, query.start_date_range)
+        for name, range in query_ranges.items():
+            query_ranges[name].add(Daterange(start_interval, datetime.date.today()))
+            query_ranges[name] = DaterangeUtility.reduce_ranges(query_ranges[name])
 
+    return query_ranges
 
 def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
     return DBArticleMetadata(title=article.title,
@@ -80,7 +88,8 @@ def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
 
 class QueryDispatcher:
     """The QueryDispatcher processes synchronisation queries in the background by offering the process_query interface.
-    """    
+    """
+
     def __init__(self,
                  issn_database: Optional[JournalNameIssnDatabase] = None,
                  article_database: Optional[InternalSQLDatabase] = None):
@@ -88,7 +97,7 @@ class QueryDispatcher:
         self.issn_database = \
             JournalNameIssnDatabase() if issn_database is None else issn_database
         if issn_database is None:
-            self.article_database: InternalSQLDatabase = SQLiteDB()  
+            self.article_database: InternalSQLDatabase = SQLiteDB()
         else:
             self.article_database: InternalSQLDatabase = article_database
 
@@ -120,7 +129,7 @@ class QueryDispatcher:
         # Dispatch the unknown ranges to be queried in the bg
         thread = threading.Thread(
             target=self._load_and_synchronize_in_background,
-            args=(query,
+            args=(query, start_execution_cb,
                   fetch_article_cb, fetch_article_cb_freq,
                   classify_data_cb, classify_data_cb_freq,
                   finished_execution_cb))
@@ -244,7 +253,7 @@ class QueryDispatcher:
 
         Returns:
             List[Response]: The scraped articles.
-        """        
+        """
 
         random.shuffle(queries)
         scraped_articles = []
@@ -295,7 +304,7 @@ class QueryDispatcher:
                                     journal_name=article.journal_name,
                                     journal_issue=article.journal_issue,
                                     journal_volume=article.journal_volume,
-                                    issn = article.issn))
+                                    issn=article.issn))
                             ps.delegate_query(q)
 
                 elif isinstance(response, Response):
@@ -305,8 +314,9 @@ class QueryDispatcher:
                 if cnt >= fetch_article_cb_freq \
                         and fetch_article_cb is not None:
                     num_scraped = len(scraped_articles)
-                    est = min(1.0, num_scraped / (tot * sum / num)) if num>0 \
+                    est = min(1.0, num_scraped / (tot * sum / num)) if num > 0 \
                         else 0
+                    est = max(est, 0.01)
                     fetch_article_cb(num_scraped, est)
                     cnt = 0
 
@@ -317,7 +327,8 @@ class QueryDispatcher:
 
     @staticmethod
     def _convert_user_to_paper_scraper_query(issns: Dict[str, str], query_id_generator: Iterator[int],
-                                             unknown_date_ranges: Dict[str, Set[Daterange]]) -> List[ISSNTimeIntervalQuery]:
+                                             unknown_date_ranges: Dict[str, Set[Daterange]]) -> List[
+        ISSNTimeIntervalQuery]:
         """Converts user queries to PaperScraper queries and divides every daterange into at most 180 day intervals.
 
         Args:
@@ -327,7 +338,7 @@ class QueryDispatcher:
 
         Returns:
             List[ISSNTimeIntervalQuery]: All ISSNTimeIntervalQueries we need to perform.
-        """        
+        """
         queries = []
         for name, ranges in unknown_date_ranges.items():
             issn = issns[name]

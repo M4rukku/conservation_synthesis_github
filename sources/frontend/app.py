@@ -69,16 +69,17 @@ def handle_search_query():
                 journals.append(journal)
     print(journals)
     start_date = request.form['start_date']
-    start_date_object = datetime.strptime(start_date, '%Y-%m-%d')
+    start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = request.form['end_date']
-    end_date_object = datetime.strptime(end_date, '%Y-%m-%d')
+    end_date_object = datetime.strptime(end_date, '%Y-%m-%d').date()
     # create user query object
     user_query = UserQueryInformation(journals, start_date_object, end_date_object, relevant_only)
     # create query handler and process query
     user_query_handler = UserQueryHandler()
 
     user_query_handler.process_user_query(user_query,
-                                          start_execution_cb=start_executation_cb(),
+                                          fetch_article_cb_freq=50,
+                                          start_execution_cb=start_executation_cb,
                                           classify_data_cb=classify_data_cb,
                                           fetch_article_cb=fetch_article_cb,
                                           finished_execution_cb=finished_execution_cb,
