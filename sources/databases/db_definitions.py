@@ -1,11 +1,11 @@
 import json
 import textwrap
 from dataclasses import dataclass, asdict
-
+from typing import Optional
 
 @dataclass
 class DBArticleMetadata:
-    """Class for structuring stored data in the database
+    """Class for structuring data stored in the article database
 
     It contains all possible information we can obtain from a query."""
 
@@ -16,18 +16,18 @@ class DBArticleMetadata:
     abstract: str
     repo_identifier: str  # Which repo gave us the data
     language: str = "EN"
-    publisher: str = None
-    journal_name: str = None
-    journal_volume: str = None
-    journal_issue: str = None
-    issn: str = None
-    url: str = None
+    publisher: Optional[str] = None
+    journal_name: Optional[str] = None
+    journal_volume: Optional[str] = None
+    journal_issue: Optional[str] = None
+    issn: Optional[str] = None
+    url: Optional[str] = None
 
-    sync_date: str = None
-    checked: bool = None
+    sync_date: Optional[str] = None
+    checked: bool = False
 
-    classified: str = None
-    relevant: bool = None
+    classified: Optional[str] = None
+    relevant: bool = False
 
     def to_json(self):
         return json.dumps(asdict(self))

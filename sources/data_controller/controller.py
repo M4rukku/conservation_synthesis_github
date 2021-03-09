@@ -4,6 +4,7 @@ import math
 import random
 import threading
 from datetime import timedelta
+from typing import Iterator, List, Dict, Generator, Set, Callable, Optional
 
 from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
@@ -15,8 +16,7 @@ from sources.databases.db_definitions import DBArticleMetadata
 from sources.databases.internal_databases import SQLiteDB, InternalSQLDatabase
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation
-from sources.frontend.user_queries import UserQueryResponse, \
-    UserQueryInformation
+from sources.frontend.user_queries import UserQueryInformation
 from sources.ml_model.ml_model import MlModelWrapper
 
 
@@ -24,7 +24,15 @@ class InvalidTimeRangeError(Exception):
     pass
 
 
-def get_unknown_date_ranges(query: UserQueryInformation):
+def get_unknown_date_ranges(query: UserQueryInformation) -> Dict[str, Set[Daterange]]:
+    """Decomposes the synchronisation query into multiple subqueries, by removing dateranges we have looked at before.
+
+    Args:
+        query (UserQueryInformation): The query to decompose
+
+    Returns:
+        Dict[str, Set[Daterange]]: The dateranges we need to query for each journal name.
+    """    
     journal_names = query.journals_to_query
 
     # Get Data We already have:
@@ -71,24 +79,36 @@ def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
 
 
 class QueryDispatcher:
+    """The QueryDispatcher processes synchronisation queries in the background by offering the process_query interface.
+    """    
     def __init__(self,
-                 issn_database: JournalNameIssnDatabase = None,
-                 article_database: InternalSQLDatabase = None):
+                 issn_database: Optional[JournalNameIssnDatabase] = None,
+                 article_database: Optional[InternalSQLDatabase] = None):
 
         self.issn_database = \
-            JournalNameIssnDatabase if issn_database is None else issn_database
-        self.article_database = SQLiteDB() if issn_database is None else \
-            article_database
+            JournalNameIssnDatabase() if issn_database is None else issn_database
+        if issn_database is None:
+            self.article_database: InternalSQLDatabase = SQLiteDB()  
+        else:
+            self.article_database: InternalSQLDatabase = article_database
 
     def process_query(self, query: UserQueryInformation,
                       fetch_article_cb, fetch_article_cb_freq,
                       classify_data_cb, classify_data_cb_freq,
-                      finished_execution_cb) -> UserQueryResponse:
+                      finished_execution_cb) -> None:
 
-        """ Processes a user query instantly! Returns what is known so far,
-        and tells the user that the rest will be loaded in the future
+        """Starts a thread that runs the synchronisation query in the background. 
 
-        :param query: A UserQueryInformation object
+        Args:
+            query (UserQueryInformation): The Synchronisation query to perform.
+            fetch_article_cb (Callable[[int, float], None], optional): The callback that will be called after fetch_article_cb_freq articles have been queried. Defaults to None.
+            fetch_article_cb_freq (int, optional): The frequency of calling fetch_article_cb. Defaults to 100.
+            classify_data_cb (Callable[[int, float], None], optional): The callback that will be called after classify_data_cb_freq articles have been classified. Defaults to None.
+            classify_data_cb_freq (int, optional): The frequency of calling classify_data_cb_freq. Defaults to 100.
+            finished_execution_cb (Callable[[], None], optional): The callback to be called once the query has successfully finished. Defaults to None.
+
+        Raises:
+            InvalidTimeRangeError: Raised when timerange is invalid iff end_date < start_date
         """
 
         # Check Validity of Daterange
@@ -131,15 +151,34 @@ class QueryDispatcher:
                                             classify_data_cb,
                                             classify_data_cb_freq,
                                             finished_execution_cb):
+        """Performs the synchronisation query in six steps:
+                1) get_unknown_date_ranges (What do I really need to query?, Remove already queried information.)
+                2) _convert_user_to_paper_scraper_query - Decompose the DateRanges we still need to query into PaperScraper Queries.
+                3) _scrape_queries_with_paperscraper  - Scrape the Queries.
+                4) Classify the returned articles with the ML Model wrapper
+                5) Store the metadata into the ArticleMetadataDB
+                6) Store the information about the performed queries into prev_query_information.
+
+        Args:
+            query (UserQueryInformation): The Synchronisation query to perform.
+            fetch_article_cb (Callable[[int, float], None], optional): The callback that will be called after fetch_article_cb_freq articles have been queried. Defaults to None.
+            fetch_article_cb_freq (int, optional): The frequency of calling fetch_article_cb. Defaults to 100.
+            classify_data_cb (Callable[[int, float], None], optional): The callback that will be called after classify_data_cb_freq articles have been classified. Defaults to None.
+            classify_data_cb_freq (int, optional): The frequency of calling classify_data_cb_freq. Defaults to 100.
+            finished_execution_cb (Callable[[], None], optional): The callback to be called once the query has successfully finished. Defaults to None.
+
+        Raises:
+            InvalidTimeRangeError: Raised when timerange is invalid iff end_date < start_date
+        """
         # Change to Paper Scraper Queries
 
         unknown_date_ranges = get_unknown_date_ranges(query)
 
-        with self.issn_database() as db:
+        with self.issn_database as db:
             issns = {name: db.get_issn_from_name(name)
                      for name in query.journals_to_query}
 
-        g_query_id = itertools.count()
+        g_query_id: Iterator[int] = itertools.count()
 
         # Convert the User Query into PaperScraper Queries
         queries = self._convert_user_to_paper_scraper_query(issns, g_query_id,
@@ -187,9 +226,20 @@ class QueryDispatcher:
             finished_execution_cb()
 
     @staticmethod
-    def _scrape_queries_with_paperscraper(queries, query_id,
-                                          fetch_article_cb,
-                                          fetch_article_cb_freq):
+    def _scrape_queries_with_paperscraper(queries: List[ISSNTimeIntervalQuery], query_id: Iterator[int],
+                                          fetch_article_cb: Optional[Callable[[int, float], None]],
+                                          fetch_article_cb_freq: int):
+        """Delegates all queries using the Paperscraper.
+
+        Args:
+            queries (List[ISSNTimeIntervalQuery]): The queries to process
+            query_id (Iterator[int]): A query_id generator
+            fetch_article_cb (Optional[Callable[[int, float], None]]): A callback to call after fetch_article_cb_freq iterations or none.
+            fetch_article_cb_freq (int): The frequency of the calling of the callback.
+
+        Returns:
+            List[Response]: The scraped articles.
+        """        
 
         random.shuffle(queries)
         scraped_articles = []
@@ -226,7 +276,7 @@ class QueryDispatcher:
                                     journal_name=article.journal_name,
                                     journal_issue=article.journal_issue,
                                     journal_volume=article.journal_volume,
-                                    issn=query.issn
+                                    issn=article.issn
                                 ))
                             ps.delegate_query(q)
                         else:
@@ -239,7 +289,8 @@ class QueryDispatcher:
                                     publication_date=article.publication_date,
                                     journal_name=article.journal_name,
                                     journal_issue=article.journal_issue,
-                                    journal_volume=article.journal_volume))
+                                    journal_volume=article.journal_volume,
+                                    issn = article.issn))
                             ps.delegate_query(q)
 
                 elif isinstance(response, Response):
@@ -260,8 +311,18 @@ class QueryDispatcher:
         return scraped_articles
 
     @staticmethod
-    def _convert_user_to_paper_scraper_query(issns, query_id_generator,
-                                             unknown_date_ranges):
+    def _convert_user_to_paper_scraper_query(issns: Dict[str, str], query_id_generator: Iterator[int],
+                                             unknown_date_ranges: Dict[str, Set[Daterange]]) -> List[ISSNTimeIntervalQuery]:
+        """Converts user queries to PaperScraper queries and divides every daterange into at most 180 day intervals.
+
+        Args:
+            issns (Dict[str, str]): A map from names to issns.
+            query_id_generator (Generator[int, None, None]): Generator that creates new query_ids.
+            unknown_date_ranges (Dict[str, Set[Daterange]]): A dictionary of unknown date ranges that are mappings from names to a set of dateranges.
+
+        Returns:
+            List[ISSNTimeIntervalQuery]: All ISSNTimeIntervalQueries we need to perform.
+        """        
         queries = []
         for name, ranges in unknown_date_ranges.items():
             issn = issns[name]
@@ -270,7 +331,7 @@ class QueryDispatcher:
                 days = delta.days
                 # SPLIT INTO BLOCKS OF AT MOST 3 months
                 count = 0
-                split = int(math.ceil(days / 90.0))
+                split = int(math.ceil(days / 360.0))
                 step = days // split
 
                 while True:

@@ -29,16 +29,16 @@ class ArticleRepositoryAPI:
         self._internal_db.set_checked(doi, checked)
 
     def perform_filter_query(self,
-                             filter_: ResultFilter):
-        """Returns all articles in the database that fulfill the filter criteria specified in filter_.
+                             rfilter: ResultFilter):
+        """Returns all articles in the database that fulfill the filter criteria specified in rfilter.
 
         Args:
-            filter_ (ResultFilter): The ResultFilter by which we want to specify the response.
+            rfilter (ResultFilter): The ResultFilter by which we want to specify the response.
 
         Returns:
-            List[DBArticleMetadata]: All responses fulfilling the properties specified in filter_.
+            List[DBArticleMetadata]: All responses fulfilling the properties specified in rfilter.
         """
-        return self._internal_db.perform_filter_query(filter_)
+        return self._internal_db.perform_filter_query(rfilter)
 
     def store_article(self, metadata: DBArticleMetadata):
         """Takes the metadata object and stores it in the internal database.

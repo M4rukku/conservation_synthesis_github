@@ -14,14 +14,14 @@ urlreg = re.compile(
 )
 
 
-def get_abstract_from_doi(doi: str):
+def get_abstract_from_doi(doi: str) -> str:
     """Takes a DOI as string and returns an abstract scraped from www.doi.org/doi.
 
     Args:
         doi (str): The DOI to query
 
     Returns:
-        str: The queried abstract or None, if nothing was found.
+        str: The queried abstract or None if nothing was found.
     """
     scraper = cloudscraper.create_scraper()
     doi_data = scraper.get(f"https://www.doi.org/{doi}", timeout=10)
@@ -95,10 +95,18 @@ def get_abstract_from_doi(doi: str):
     return result.group(1).strip() if result is not None else None
 
 
-async def async_get_abstract_from_doi(doi: str):
+async def async_get_abstract_from_doi(doi: str) -> str:
+    """An asynchronous version of get_abstract_from_doi. This function uses webscraping to obtain the abstract to a given doi.
+
+    Args:
+        doi (str): The doi for which we want to scrape the web.
+
+    Returns:
+        str: The scraped abstract.
+    """    
     await asyncio.sleep(0.3)
-    return await asyncio.get_running_loop().run_in_executor(
-        get_abstract_from_doi(doi))
+    fut = asyncio.get_running_loop().run_in_executor(None, get_abstract_from_doi, doi)
+    return await fut
 
 
 def update_dict_w_abstract(row):
