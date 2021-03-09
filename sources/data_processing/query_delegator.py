@@ -112,12 +112,12 @@ class QueryDelegator:
                                 "CORE": CoreRepository}
 
     repo_identifier_max_conn = {"openaire": 15,
-                                "crossref": 15,
+                                "crossref": 12,
                                 "CORE": 15}
 
     query_repository_preferences = \
         {"KeywordQuery": ["openaire", "CORE", "crossref"],
-         "DOIQuery": ["openaire", "CORE", "crossref"],
+         "DOIQuery": ["openaire", "CORE"],
          "JournalTimeIntervalQuery": ["crossref"]}
 
     async def wait_until_repository_available(self, repo_identifier):

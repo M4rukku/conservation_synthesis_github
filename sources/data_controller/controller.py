@@ -1,10 +1,10 @@
 import datetime
 import itertools
 import math
-from typing import Iterator, Optional, List, Dict, Generator, Set, Callable, Optional
 import random
 import threading
 from datetime import timedelta
+from typing import Iterator, List, Dict, Generator, Set, Callable, Optional
 
 from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
@@ -16,8 +16,7 @@ from sources.databases.db_definitions import DBArticleMetadata
 from sources.databases.internal_databases import SQLiteDB, InternalSQLDatabase
 from sources.databases.journal_name_issn_database import JournalNameIssnDatabase
 from sources.databases.prev_query_information_db import PrevQueryInformation
-from sources.frontend.user_queries import UserQueryResponse, \
-    UserQueryInformation
+from sources.frontend.user_queries import UserQueryInformation
 from sources.ml_model.ml_model import MlModelWrapper
 
 
@@ -332,7 +331,7 @@ class QueryDispatcher:
                 days = delta.days
                 # SPLIT INTO BLOCKS OF AT MOST 3 months
                 count = 0
-                split = int(math.ceil(days / 180.0))
+                split = int(math.ceil(days / 360.0))
                 step = days // split
 
                 while True:
