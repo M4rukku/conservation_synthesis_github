@@ -9,6 +9,7 @@ from sources.data_controller.controller_interface import UserQueryHandler
 from sources.frontend.user_queries import ResultFilter
 from sources.frontend.user_queries import UserQueryInformation
 
+import math
 app = Flask(__name__)
 
 @app.route('/')
@@ -150,7 +151,15 @@ def convert_list_to_string(list_of_strings):
 
 @app.route('/sync')
 def sync():
-    return render_template('sync.html')
+    return render_template('sync.html', download_status=get_sync_status()[0],classification_status=get_sync_status()[1],search_status=get_sync_status()[2])
+
+def get_sync_status():
+    #0<=the value of these variables <=1
+    download_status = 0.8
+    classification_status = 0.5
+    search_status = 0.3
+    return [math.trunc(download_status*100), math.trunc(classification_status*100),math.trunc(search_status*100)]
+
 
 #run flask under debug mode for development
 if __name__ == '__main__':
