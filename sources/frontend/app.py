@@ -1,6 +1,6 @@
-from datetime import datetime
-
+import math
 import pandas as pd
+from datetime import datetime
 from flask import Flask, render_template, request
 
 from sources.data_controller.controller_interface import \
@@ -9,7 +9,6 @@ from sources.data_controller.controller_interface import UserQueryHandler
 from sources.frontend.user_queries import ResultFilter
 from sources.frontend.user_queries import UserQueryInformation
 
-import math
 app = Flask(__name__)
 
 @app.route('/')
@@ -152,6 +151,16 @@ def convert_list_to_string(list_of_strings):
 @app.route('/sync')
 def sync():
     return render_template('sync.html', download_status=get_sync_status()[0],classification_status=get_sync_status()[1],search_status=get_sync_status()[2])
+
+
+def download_callback(articles_downloaded_so_far: int, percentage_of_total: float):
+    pass
+
+def classification_callback(articles_classified_so_far: int, percentage_of_total: float):
+    pass
+
+def finished_callback():
+    pass
 
 def get_sync_status():
     #0<=the value of these variables <=1
