@@ -147,29 +147,25 @@ def convert_list_to_string(list_of_strings):
     final_string = final_string + list_of_strings[len(list_of_strings) - 1]
     return final_string
 
+#global variables for updating the sync pageSize
+download_stats = 0
+classification_stats = 0
+finished_stats = False
 
 @app.route('/sync')
 def sync():
-    return render_template('sync.html', download_status=get_sync_status()[0],classification_status=get_sync_status()[1],search_status=get_sync_status()[2])
+    return render_template('sync.html')
 
 
 def fetch_article_cb(articles_downloaded_so_far: int, percentage_of_total: float):
-    update_download_bar(percentage_of_total)
-    update_page()
+    download_stats = math.trunc(percentage_of_total*100)
+
 
 def classify_data_cb(articles_classified_so_far: int, percentage_of_total: float):
-    pass
+    classification_stats = math.trunc(percentage_of_total*100)
 
 def finished_execution_cb():
-    pass
-
-def get_sync_status():
-    #0<=the value of these variables <=1
-    download_status = 0.8
-    classification_status = 0.5
-    search_status = 0.3
-    return [math.trunc(download_status*100), math.trunc(classification_status*100),math.trunc(search_status*100)]
-
+    finished_stats = True
 
 #run flask under debug mode for development
 if __name__ == '__main__':

@@ -2,28 +2,21 @@
 
 {% block content %}
     <div>
-    <h2>Sync</h2>
-    This page will demonstrate the current synchronization status for the database and different web repositories.</br>
-    This page will (hopefully) also demonstrate how the database are currently classified.(optional feature).</br>
-    Refresh the sync page to see status update.</br></br>
-    </div>
+    <h2>Synchronization Status</h2>
     <div class="col-md-8">
-    <h3>Synchronization Status</h3>
     <hr>
-    </div>
-    <div class="col-md-8">
     Paper Downloading Status: 
     <div class="progress">
-        <div class="progress-bar bg-info" role="progressbar"  style="width: {{download_status}}%" aria-valuenow="{{download_status}}" aria-valuemin="0" aria-valuemax="100">{{download_status}}%</div>
+        <div class="progress-bar bg-info" role="progressbar"  style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
         <hr>
     </div>
     Paper Classification Status: 
     <div class="progress">
-        <div class="progress-bar bg-info" role="progressbar" style="width: {{classification_status}}%" aria-valuenow="{{classification_status}}" aria-valuemin="0" aria-valuemax="100">{{classification_status}}%</div>
+        <div class="progress-bar bg-info" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
     </div>
-    Search Status: 
-    <div class="progress">
-        <div class="progress-bar bg-info" role="progressbar" style="width: {{search_status}}%" aria-valuenow="{{search_status}}" aria-valuemin="0" aria-valuemax="100">{{search_status}}%</div>
+    finished Status: 
+    <div>
+        <button type="button" class="btn btn-secondary btn-lg">Not Finished</button>
     </div>
     </div>
 {% endblock %}
