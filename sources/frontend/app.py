@@ -31,8 +31,9 @@ def search():
 # mock up content for the journals
 def get_journals():
     # read in the frequency value, notice the relative path
-    path = Path(__file__) / "frontend_data" / "journal_usage_frequency.pd.json"
-    table = pd.read_json(path)
+    path = Path(__file__).parent / "frontend_data" / "journal_usage_frequency.pd.json"
+    with path.open("rb") as f:
+        table = pd.read_json(f)
     table.sort_values(by='counts',ascending=False,inplace=True)
     journal_list = table.index.tolist()
     # remove empty list
