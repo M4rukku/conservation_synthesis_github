@@ -1,5 +1,5 @@
-import math
-from datetime import datetime
+from datetime import datetime, date
+from pathlib import Path
 
 import pandas as pd
 from flask import Flask, render_template, request
@@ -16,10 +16,14 @@ app.config['SECRET_KEY'] = "'secret!'"
 app.config['DEBUG']=True
 socketio = SocketIO(app)
 
+
+# display about page
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
+# display search query form
 @app.route('/search')
 def search():
     dates = {
@@ -32,15 +36,19 @@ def search():
     }
     return render_template('search.html', journal_name=get_journals(), dates=dates, criteria=criteria)
 
+
 # mock up content for the journals
 def get_journals():
     # read in the frequency value, notice the relative path
-    table = pd.read_json("frontend_data/journal_usage_frequency.pd.json")
-    table.sort_values(by='counts',ascending=False,inplace=True)
+    path = Path(__file__).parent / "frontend_data" / "journal_usage_frequency.pd.json"
+    with path.open("rb") as f:
+        table = pd.read_json(f)
+    table.sort_values(by='counts', ascending=False, inplace=True)
     journal_list = table.index.tolist()
     # remove empty list
     journal_list = [x for x in journal_list if x]
     return journal_list
+
 
 # handle query input on the search page
 @app.route('/handle-search-query', methods=['POST'])
@@ -75,6 +83,8 @@ def handle_search_query():
                                           )
     return search()
 
+
+# display result filter query form
 @app.route('/results')
 def results():
     dates = {
@@ -86,11 +96,39 @@ def results():
         'relevant_only': 'Return relevant articles only',
         'all_journals': 'Search all journals'
     }
-    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=False, result=None, dates=dates, criteria=criteria)
+    return render_template('results.html',
+                           journal_name=get_journals(),
+                           topic="Sync",
+                           display_table=False,
+                           result=None,
+                           dates=dates,
+                           criteria=criteria)
 
+
+global_filter_result = []
+
+
+# display table of filter results (with pagination)
 @app.route('/results-table')
-def results_table(filter_result):
-    return render_template('results.html', journal_name = get_journals(), topic = "Sync", display_table=True, result=filter_result)
+def results_table():
+    current_page = request.args.get('page', 1, type=int)
+    articles_per_page = 10
+    max_page = len(global_filter_result) // articles_per_page + 1
+    from_article = (current_page - 1) * articles_per_page
+    if current_page == max_page:
+        to_article = from_article + (len(global_filter_result) - ((max_page - 1) * articles_per_page))
+    else:
+        to_article = from_article + articles_per_page
+    articles_to_show = global_filter_result[from_article:to_article]
+    return render_template('results.html',
+                           journal_name=get_journals(),
+                           topic="Sync",
+                           display_table=True,
+                           result=articles_to_show,
+                           current_page=current_page,
+                           max_page=max_page,
+                           articles_per_page=articles_per_page)
+
 
 # handle query input on the results page
 @app.route('/handle-results-query', methods=['POST'])
@@ -112,20 +150,25 @@ def handle_results_query():
     sync_date = request.form['sync_date']
     sync_date_object = datetime.strptime(sync_date, '%Y-%m-%d').date()
     start_date = request.form['start_date']
-    start_date_object = datetime.strptime(start_date, '%Y-%m-%d')
+    start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = request.form['end_date']
-    end_date_object = datetime.strptime(end_date, '%Y-%m-%d')
+    end_date_object = datetime.strptime(end_date, '%Y-%m-%d').date()
     # create result filter object
     result_filter = ResultFilter(journal_names=journals,
-                              relevant_only=relevant_only,
-                              from_pub_date=start_date_object,
-                              to_pub_date=end_date_object,
-                              sync_date=sync_date_object,)
+                                 relevant_only=relevant_only,
+                                 from_pub_date=start_date_object,
+                                 to_pub_date=end_date_object,
+                                 from_sync_date=sync_date_object,
+                                 to_sync_date=date.today())
+
     # create query handler and process query
     filter_handler = DatabaseResultQueryHandler()
     result = filter_handler.process_filter_query(result_filter)
     list_of_result_dicts = convert_result(result)
-    return results_table(list_of_result_dicts)
+    global global_filter_result
+    global_filter_result = list_of_result_dicts
+    return results_table()
+
 
 # helper function that converts list of objects into dict that can be displayed as a table
 def convert_result(result_list):
@@ -183,6 +226,7 @@ def start_executation_cb():
     download_stats = 0
     classification_stats = 0
 
-#run flask under debug mode for development
+
+# run flask under debug mode for development
 if __name__ == '__main__':
     socketio.run(app)

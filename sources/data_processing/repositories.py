@@ -4,6 +4,7 @@ import datetime
 import functools
 import json
 import re
+from typing import List
 from collections import defaultdict
 
 import jellyfish
@@ -13,7 +14,7 @@ from aiohttp import ClientSession
 from habanero import Crossref
 
 from . import queries
-from .queries import AbstractQuery
+from .queries import AbstractQuery, ArticleMetadata
 
 
 # Interface Definitions
@@ -24,7 +25,10 @@ class classproperty(property):
 
 
 class AbstractRepository(metaclass=abc.ABCMeta):
+    """AbstractRepository defines the interface a repository must implement to work together with the query_delegator.
 
+    It provides an api_endpoint, an identifier, a query_per_second limit and an execute_query method. The last one must be implemented asynchronously.
+    """
     @staticmethod
     @abc.abstractmethod
     def get_identifier():
@@ -46,6 +50,18 @@ class AbstractRepository(metaclass=abc.ABCMeta):
     async def execute_query(
             self, query: AbstractQuery, session: ClientSession = None
     ) -> queries.Response:
+        """execute_query delegates query to the API to which the repository connects.
+
+        Args:
+            query (AbstractQuery): The Query to execute (must specify all supported queries in query_delegator).
+            session (ClientSession, optional): The aiohttp.ClientSession we are currently using. Defaults to None.
+
+        Raises:
+            NotImplementedError: If the specific query type is not implemented, this must raise a NotImplementedError.
+
+        Returns:
+            queries.Response: The response object defining the result of our query.
+        """        
         raise NotImplementedError("Must declare how queries are handled!")
 
 
@@ -61,6 +77,15 @@ class DataNotFoundError(Exception):
 
 
 def strings_approx_equal(fst_string: str, snd_string: str) -> bool:
+    """Helper method that defines equality of strings based on the damerau_levensthein_distance.
+    
+    Args:
+        fst_string (str): First string.
+        snd_string (str): Second string.
+
+    Returns:
+        bool: True iff the two strings are approximately equal, False otherwise.
+    """    
     dist = jellyfish.damerau_levenshtein_distance(
         fst_string.strip().lower(), snd_string.strip().lower()
     )
@@ -71,7 +96,18 @@ def strings_approx_equal(fst_string: str, snd_string: str) -> bool:
     )
 
 
-def get_metadata_best_fit_by_title(ls_metadata, real_title):
+def get_metadata_best_fit_by_title(ls_metadata: List[ArticleMetadata], real_title:str) -> ArticleMetadata:
+    """Takes a list of ArticleMetadata objects and a title; it will select the best fit
+        metadata based on the minimal damerau_levensthein_distance between the real_title and the 
+        metadata's title. It will return None if no title matches the real_title. 
+
+    Args:
+        ls_metadata (List[ArticleMetadata]): A list of candidate articles that might fit our real title.
+        real_title (str): The string of the real title.
+
+    Returns:
+        ArticleMetadata: Returns the best fit ArticleMetadata or None if no match is found.
+    """    
     lev_distances = [
         jellyfish.damerau_levenshtein_distance(
             meta.title.strip().lower(), real_title.strip().lower()
@@ -99,6 +135,15 @@ whitespace_pattern = re.compile(r"\s+")
 
 
 def format_author(author: str):
+    """Formats a string representing an author to a more standardised form which is more reliable for performing keyword queries.
+       It does that by removing i.e. abbreviations / middle names.
+       
+    Args:
+        author (str): The string representing the author (unformatted).
+
+    Returns:
+        str: The standardised name of the author
+    """    
     author = symbol_pattern.sub("", author)
     cur_pos = 0
     reduced_str = ""
@@ -117,6 +162,11 @@ def format_author(author: str):
 
 
 class OpenAireRepository(AbstractRepository):
+    """A class representing a connection to the OpenAireRepository.
+    Implements all functions from AbstractRepository.
+    
+    Internal functions mostly deal with translation of the API response to a Response object.
+    """    
     @staticmethod
     def get_identifier():
         return "openaire"
@@ -308,7 +358,12 @@ class OpenAireRepository(AbstractRepository):
 
 
 class CrossrefRepository(AbstractRepository):
-    _polite_pool_mail = ""
+    """A class representing a connection to the CrossrefRepository.
+    Implements all functions from AbstractRepository.
+    
+    Internal functions mostly deal with translation of the API response to a Response object."""    
+    
+    _polite_pool_mail = "" #"mw784@cam.ac.uk"
 
     @staticmethod
     def get_identifier():
@@ -501,6 +556,11 @@ class CrossrefRepository(AbstractRepository):
 
 
 class CoreRepository(AbstractRepository):
+    """A class representing a connection to the CrossrefRepository.
+    Implements all functions from AbstractRepository.
+    
+    Internal functions mostly deal with translation of the API response to a Response object.
+    """    
     api_key = "Bb6GprzvsKnLSFxlimUhP1XaJfwo4Ruc"
 
     @staticmethod

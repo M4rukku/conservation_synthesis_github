@@ -3,7 +3,7 @@ import datetime
 import json
 import textwrap
 from dataclasses import dataclass, asdict
-
+from typing import Optional
 
 @dataclass
 class ArticleMetadata:
@@ -18,12 +18,12 @@ class ArticleMetadata:
     abstract: str
     repo_identifier: str  # Which repo gave us the data
     language: str = "EN"
-    publisher: str = None
-    journal_name: str = None
-    journal_volume: str = None
-    journal_issue: str = None
-    issn: str = None
-    url: str = None
+    publisher: Optional[str] = None
+    journal_name: Optional[str] = None
+    journal_volume: Optional[str] = None
+    journal_issue: Optional[str] = None
+    issn: Optional[str] = None
+    url: Optional[str] = None
 
     def to_json(self):
         return json.dumps(asdict(self))
@@ -42,22 +42,54 @@ class ArticleMetadata:
         return returnString
 
 
+@dataclass
+class JournalData:
+    """A piece of data that can be added to a response. It is used because different repositories know different things about the data. 
+        In order to obtain everything we will use this on the Response. (Mostly on DOIQueries, where I know the journal via the sync method in controller.)
+    """
+    journal_name: str
+    journal_volume: str
+    journal_issue: str
+    publication_date: str
+    issn: str
+
+
 class Response:
     """Class encapsulating a Response.
 
-    It contains all possible information we can obtain from a query."""
+    It contains all information we obtained from a article based query."""
 
-    def __init__(self, query_id: int, metadata: ArticleMetadata):
+    def __init__(self, query_id: int, metadata: Optional[ArticleMetadata]):
         self.query_id = query_id
         self.metadata = metadata
 
+    @staticmethod
+    def valid(field: str):
+        return field is not None and field != ""
+
+    def add_journal_data(self, journal_data):
+        if journal_data is not None:
+            if self.valid(journal_data.publication_date):
+                self.metadata.publication_date = journal_data.publication_date
+            if self.valid(journal_data.journal_name):
+                self.metadata.journal_name = journal_data.journal_name
+            if self.valid(journal_data.journal_volume):
+                self.metadata.journal_volume = journal_data.journal_volume
+            if self.valid(journal_data.journal_issue):
+                self.metadata.journal_issue = journal_data.journal_issue
+            if self.valid(journal_data.issn):
+                self.metadata.issn = journal_data.issn
+
 
 class FailedQueryResponse(Response):
+    """Class indicating a query failure."""
     def __init__(self, query_id):
         super().__init__(query_id, None)
 
 
 class JournalDaterangeResponse(Response):
+    """Class encapsulating a response from a ISSNDaterangeQuery."""
+    
     def __init__(self, query_id: int, all_articles: list):
         super().__init__(query_id, None)
         self.query_id = query_id
@@ -68,9 +100,15 @@ class JournalDaterangeResponse(Response):
 ################################################################################
 
 class AbstractQuery(metaclass=abc.ABCMeta):
+    """The interface each query must implement. Queries can be passed to repositories to obtain a response object.
+
+        At the very least each query contains an ID and SchedulingInformations (all already queried repositories saved by their identifier.)
+        I have added Journal Data as a persistent data storage over query redelegation in the QueryDelegator.
+    """    
     def __init__(self, query_id: int):
         self._query_id = query_id
         self._queried_repositories = set()
+        self._journal_data = None
 
     @property
     def query_id(self):
@@ -82,6 +120,12 @@ class AbstractQuery(metaclass=abc.ABCMeta):
     def get_scheduling_information(self):
         return self._queried_repositories
 
+    def add_journal_data(self, journal_data):
+        self._journal_data = journal_data
+
+    def get_journal_data(self):
+        return self._journal_data
+
 
 # Scheduling Information contains data about tried APIs and more?
 # It must at least contain key "tried_connections"
@@ -91,12 +135,16 @@ class AbstractQuery(metaclass=abc.ABCMeta):
 
 
 class DoiQuery(AbstractQuery):
-    def __init__(self, query_id: int, doi_to_query):
+    """A Doi query is a query awaiting a response based only on the doi of the article we want.
+    """    
+    def __init__(self, query_id: int, doi_to_query: str, ):
         super().__init__(query_id)
         self.doi_to_query = doi_to_query
 
 
 class ISSNTimeIntervalQuery(AbstractQuery):
+    """A ISSNTimeIntervalQuery query is a query awaiting a response based on the ISSN of a journal and a date range.
+    """  
     def __init__(
             self,
             query_id: int,
@@ -111,6 +159,8 @@ class ISSNTimeIntervalQuery(AbstractQuery):
 
 
 class KeywordQuery(AbstractQuery):
+    """A KeywordQuery queries the repositories based on bibliographic data and timeranges.
+    """    
     def __init__(
             self,
             query_id: int,

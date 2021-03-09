@@ -15,7 +15,7 @@
           <!-- table rows -->
           {% for article in result %}
           <tr>
-             <td> {{loop.index}} </td>
+             <td> {{(current_page - 1) * articles_per_page + loop.index}} </td>
              {% for value in article.values() %}
              <td>  {{ value|safe }} </td>
              {% endfor %}
@@ -24,5 +24,16 @@
         </tbody>  
         {% endif %}
     </table>
+    <nav aria-label="Results page navigation">
+      <ul class="pagination justify-content-center">
+        {% if current_page != 1 %}
+          <li class="page-item"><a class="page-link" href="{{ url_for('results_table', page=current_page - 1) }}"><<</a></li>
+        {% endif %}
+          <li class="page-item"><a class="page-link" href="{{ url_for('results_table', page=current_page) }}">{{ current_page }}</a></li>
+        {% if current_page != max_page %}
+          <li class="page-item"><a class="page-link" href="{{ url_for('results_table', page=current_page + 1) }}">>></a></li>
+        {% endif %}
+      </ul>
+    </nav>
   </div>
 </div>

@@ -1,5 +1,6 @@
 import datetime
 from dataclasses import dataclass
+from typing import Optional
 
 classification_types = ["Amphibians",
                         "Animals",
@@ -36,14 +37,16 @@ classification_types = ["Amphibians",
 # query object created on search page
 @dataclass
 class UserQueryInformation:
+    """UserQueryInformation encapsulates the information passed in a synchronisation query.
+    """
     journals_to_query: list
     start_date_range: datetime.date
     end_date_range: datetime.date
-    relevant_only: bool = None
-    classification_restriction: str = None
+    relevant_only: Optional[bool] = None
+    classification_restriction: Optional[str] = None
 
 
-class UserQueryResponse:
+class UserQueryResponse: #TODO Remove
     def __init__(self, processed_data: list, message=None):
         self.processed_data = processed_data  # Data from Database
         self.message = message  # What still needs to be gathered (intervals)i
@@ -51,15 +54,18 @@ class UserQueryResponse:
 
 # query object created on results page
 class ResultFilter:
+    """ResultFilter encapsulates the query restrictions.
+    """
     def __init__(self,
                  journal_names: list,
+                 from_pub_date: datetime.date,
+                 to_pub_date: datetime.date,
+
                  relevant_only: bool = None,
                  remove_checked_articles: bool = None,
                  classification: str = None,
-
-                 from_pub_date: datetime.date = None,
-                 to_pub_date: datetime.date = None,
-                 sync_date: datetime.date = None,
+                 from_sync_date: datetime.date = None,
+                 to_sync_date: datetime.date = None,
                  ):
         self.journal_names = journal_names
         self.relevant_only = relevant_only
@@ -68,4 +74,5 @@ class ResultFilter:
 
         self.from_pub_date = from_pub_date
         self.to_pub_date = to_pub_date
-        self.sync_date = sync_date
+        self.from_sync_date = from_sync_date
+        self.to_sync_date = to_sync_date

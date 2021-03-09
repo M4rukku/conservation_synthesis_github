@@ -1,3 +1,4 @@
+import asyncio
 import random
 import re
 import time
@@ -13,18 +14,18 @@ urlreg = re.compile(
 )
 
 
-def get_abstract_from_doi(doi: str):
+def get_abstract_from_doi(doi: str) -> str:
     """Takes a DOI as string and returns an abstract scraped from www.doi.org/doi.
 
     Args:
         doi (str): The DOI to query
 
     Returns:
-        str: The queried abstract or None, if nothing was found.
+        str: The queried abstract or None if nothing was found.
     """
     scraper = cloudscraper.create_scraper()
     doi_data = scraper.get(f"https://www.doi.org/{doi}", timeout=10)
-    doi_bs = BeautifulSoup(doi_data.text)
+    doi_bs = BeautifulSoup(doi_data.text, features="lxml")
 
     if doi_data.url.startswith(
             "https://link.springer.com/"
@@ -33,7 +34,7 @@ def get_abstract_from_doi(doi: str):
             "https://link.springer.com/", "https://link.springer.com/article/"
         )
         doi_data = scraper.get(cleaned_link, timeout=10)
-        doi_bs = BeautifulSoup(doi_data.text)
+        doi_bs = BeautifulSoup(doi_data.text, features="lxml")
 
     # Check whether we landed at a javascript redirect page
     attempts = 0
@@ -45,7 +46,7 @@ def get_abstract_from_doi(doi: str):
         match = pattern.search(doi_bs.head.__str__())
         if match is not None:
             doi_data = scraper.get(unquote(match.group(1)), timeout=10)
-            doi_bs = BeautifulSoup(doi_data.text)
+            doi_bs = BeautifulSoup(doi_data.text, features="lxml")
         else:
             res = doi_bs.body.find_all(
                 id=re.compile("url|redirect", flags=re.IGNORECASE)
@@ -62,7 +63,7 @@ def get_abstract_from_doi(doi: str):
                 if len(red_url) > 0:
                     match = red_url[0]
                     doi_data = scraper.get(unquote(match.group(1)), timeout=10)
-                    doi_bs = BeautifulSoup(doi_data.text)
+                    doi_bs = BeautifulSoup(doi_data.text, features="lxml")
                     continue
 
     doi_bs = doi_bs.body
@@ -92,6 +93,20 @@ def get_abstract_from_doi(doi: str):
     result = pattern.search(readable_text)
 
     return result.group(1).strip() if result is not None else None
+
+
+async def async_get_abstract_from_doi(doi: str) -> str:
+    """An asynchronous version of get_abstract_from_doi. This function uses webscraping to obtain the abstract to a given doi.
+
+    Args:
+        doi (str): The doi for which we want to scrape the web.
+
+    Returns:
+        str: The scraped abstract.
+    """    
+    await asyncio.sleep(0.3)
+    fut = asyncio.get_running_loop().run_in_executor(None, get_abstract_from_doi, doi)
+    return await fut
 
 
 def update_dict_w_abstract(row):

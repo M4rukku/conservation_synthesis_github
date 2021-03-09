@@ -133,3 +133,27 @@ dmypy.json
 # IntelliJ
 .idea/
 .vscode/
+data/data_gathering/clean_references_CORE/CORE_merged.json
+data/data_gathering/clean_references_crossref/crossref_merged.json
+
+data/data_gathering/clean_references_openaire/openaire_merged.json
+data/data_gathering/merged/infuklim_scraped_data.json
+data/data_gathering/merged/merged_data.json
+data/data_gathering/merged/scraped_data.json
+data/data_gathering/merged/wiley_scraped_data.json
+data/db_backup/db2_backup.sqlite
+data/journal_data/articles_from_all_used_journals_ss.pd
+data/negative_samples/cleaned_negative_data_from_comparable_volumes.zip
+data/negative_samples/random_journal_metadata.zip
+data/data_gathering/merged/oxf_scraped_data.json
+data/positive_samples/positive_samples_v1_160221.pd.json
+data/positive_samples/positive_samples_only_with_abstract_v1_160221.pd.json
+ml_pipeline/ml_data/x_relevance_data_v1.pd.json
+ml_pipeline/ml_data/x_classification_pos_data_v1.pd.json
+ml_pipeline/ml_data/y_classification_pos_data_v1.pd.json
+ml_pipeline/ml_data/x_relevance_data_v1.pd.json
+ml_pipeline/ml_data/y_relevance_data_v1.pd.json
+
+sources/databases/file_databases/article_data_untracked.sqlite
+sources/databases/file_databases/article_data copy.sqlite
+sources/databases/file_databases/article_data_untracked.sqlite

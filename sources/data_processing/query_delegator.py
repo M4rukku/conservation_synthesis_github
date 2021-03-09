@@ -4,12 +4,17 @@ from threading import Timer
 
 import aiohttp
 
-from sources.data_processing.async_mp_queue import AsyncMTQueue
-from sources.data_processing.queries import AbstractQuery, FailedQueryResponse
+from sources.data_processing.async_mt_queue import AsyncMTQueue
+from sources.data_processing.queries import AbstractQuery, FailedQueryResponse, \
+    DoiQuery, KeywordQuery
 from . import queries
+from .abstract_webscraping import async_get_abstract_from_doi
 from .repositories import AbstractRepository, DataNotFoundError, \
     OpenAireRepository, CrossrefRepository, CoreRepository
 
+
+def valid(field:str):
+    return field is not None and field != ""
 
 class TerminationFlag(queries.AbstractQuery):
     """Flag which can be passed into the query_queue to indicate slow
@@ -31,11 +36,19 @@ class TerminationTimeoutFlag(queries.AbstractQuery):
 
 
 class AllRepositoriesTriedError(Exception):
+    """Exception that will be raised once we have tried all potential repositories for a given query (and query type).
+    """    
     pass
 
 
 def run_delegator(query_delegation_queue: AsyncMTQueue,
                   response_queue: AsyncMTQueue):
+    """The interface to the QueryDelegator. It should called in a new background thread that is running the delegator.
+
+    Args:
+        query_delegation_queue (AsyncMTQueue): the queue from which queries will be fetched.
+        response_queue (AsyncMTQueue): The queue on which the delegator passes the Response objects.
+    """    
     delegator = QueryDelegator(query_delegation_queue,
                                response_queue)
     event_loop = asyncio.new_event_loop()
@@ -78,6 +91,10 @@ class QueryCounter:
 
 
 class QueryDelegator:
+    """The QueryDelegator takes queries by waiting on the _query_delegation_queue and executes them by delegating them to appropriate repositories.
+        Once a request has been processed, it will be pushed to the _response_queue from which it can be popped.
+        Once a TerminationFlag has been pushed, the machine will try to exit.
+    """    
 
     def __init__(self,
                  query_delegation_queue: AsyncMTQueue,
@@ -95,23 +112,43 @@ class QueryDelegator:
                                 "CORE": CoreRepository}
 
     repo_identifier_max_conn = {"openaire": 15,
-                                "crossref": 15,
+                                "crossref": 12,
                                 "CORE": 15}
 
     query_repository_preferences = \
         {"KeywordQuery": ["openaire", "CORE", "crossref"],
-         "DOIQuery": ["openaire", "CORE", "crossref"],
+         "DOIQuery": ["openaire", "CORE"],
          "JournalTimeIntervalQuery": ["crossref"]}
 
     async def wait_until_repository_available(self, repo_identifier):
+        """If there are API restricitons on the amount of queries per second on a repository, this is
+            function will ensure that these restrictions are met by waiting on the internal QueryCounter.
+
+        Args:
+            repo_identifier (str): [description]
+        """        
         while (self._query_counter.get_open_connections_for_repo(
                 repo_identifier) > self.repo_identifier_max_conn[
-                   repo_identifier]):
+                   repo_identifier]
+                or
+                self._query_counter.get_num_request_last_interval(repo_identifier)>
+                self.repo_identifier_max_conn[repo_identifier]):
             await asyncio.sleep(0.5)
 
     # Version!
 
     async def choose_repository(self, query) -> AbstractRepository:
+        """Selects the appropriate repository for a given query by checking both the query type and the query history.
+
+        Args:
+            query (AbstractQuery): The query to process.
+
+        Raises:
+            AllRepositoriesTriedError: Raises AllRepositoriesTriedError, if there is no queryable repo left.
+
+        Returns:
+            AbstractRepository: The repo to query next.
+        """        
         if isinstance(query, queries.KeywordQuery):
             rep_pref = self.query_repository_preferences["KeywordQuery"]
         elif isinstance(query, queries.ISSNTimeIntervalQuery):
@@ -136,6 +173,13 @@ class QueryDelegator:
         return self.repo_identifier_repo_map[repo]()
 
     async def handle_query(self, query: AbstractQuery, session):
+        """Asynchronous execution context that performs the query. If unsuccessful, it will update the scheduling
+            information on the query and then reissue the query.
+
+        Args:
+            query (AbstractQuery): The query to process.
+            session ([type]): The Aiohttp client session to use.
+        """        
         try:
             repo = await self.choose_repository(query)
         except AllRepositoriesTriedError as e:
@@ -145,8 +189,21 @@ class QueryDelegator:
 
         try:
             result = await repo.execute_query(query, session)
-            self._response_queue.put(result)
             self._query_counter.request_completed(repo.get_identifier())
+
+            if isinstance(query, DoiQuery) or isinstance(query, KeywordQuery):
+                result.add_journal_data(query.get_journal_data())
+
+                if not valid(result.metadata.abstract):
+                    try:
+                        result.metadata.abstract = \
+                            await async_get_abstract_from_doi(result.metadata.doi)
+                    except Exception as e:
+                        pass
+                self._response_queue.put(result)
+            else:
+                self._response_queue.put(result)
+
         except DataNotFoundError as e:
             self._query_delegation_queue.put(query)
             self._query_counter.request_completed(repo.get_identifier())
@@ -155,6 +212,9 @@ class QueryDelegator:
             self._query_counter.request_completed(repo.get_identifier())
 
     async def process_queries(self):
+        """The "run" method of the QueryDelegator. Waits on the delegation queue and schedules all requests to be done. 
+            Once a TerminationFlag has been passed, it will try to terminate the process.
+        """        
         initial_tasks = set(asyncio.all_tasks())
         async with aiohttp.ClientSession() as session:
             while not self._terminated:
@@ -163,12 +223,11 @@ class QueryDelegator:
 
                 # Check for Termination Signal
                 if isinstance(query, TerminationFlag):
-                    print("Terminated Loop")
                     timeout = None
                     self._terminated = True
                     if len(asyncio.all_tasks() - initial_tasks) > 0:
                         await asyncio.gather(*(asyncio.all_tasks() -
-                                              initial_tasks))
+                                               initial_tasks))
                     if self._query_delegation_queue.qsize() == 0:
                         break
 
@@ -176,7 +235,6 @@ class QueryDelegator:
                     self._terminated = False
                     continue
                 if isinstance(query, TerminationTimeoutFlag):
-                    print("Terminated Loop Forcibly")
                     timeout = query.timeout
                     break
 

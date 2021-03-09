@@ -1,9 +1,14 @@
 import asyncio
 import functools
 from queue import Queue
-
+from typing import List
 
 class AsyncMTQueue:
+    """An implementation of a synchronous queue that provides both interfaces for asyncio and blocking get/puts.
+       It does that by wrapping all blocking calls with an executor.
+       
+       All functions do the same thing as the queue in the standard library.
+    """    
     def __init__(self, max_size=0):
         self._queue = Queue(maxsize=max_size)
 
@@ -39,7 +44,12 @@ class AsyncMTQueue:
         else:
             return self.get_nowait()
 
-    def get_all_available(self):
+    def get_all_available(self) -> List:
+        """Helper Method that returns all currently available entries in the internal queue nonblocking.
+
+        Returns:
+            List: All elements returned from the internal queue.
+        """        
         ls = []
         while True:
             tmp = self.get_nowait()
