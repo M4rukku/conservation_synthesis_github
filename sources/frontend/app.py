@@ -121,9 +121,21 @@ def results_table():
                            articles_per_page=articles_per_page)
 
 
+# Cache Data so that reloads don't cause an actual reloading of data!
+cached_query = None
+# True if we are currently responding to a request
+in_process = False
+
+
 # handle query input on the results page
 @app.route('/handle-results-query', methods=['POST'])
 def handle_results_query():
+    #Ensure
+    global in_process
+    if in_process:
+        return
+    in_process = True
+
     # get all form fields
     if request.form.get('relevant_only'):
         relevant_only = True
@@ -151,12 +163,20 @@ def handle_results_query():
                                  from_sync_date=sync_date_object,
                                  to_sync_date=date.today())
 
+    #Ensure we don't double load the same query
+    global cached_query
+    if cached_query == result_filter:
+        in_process = False
+        return results_table()
+    cached_query = result_filter
+
     # create query handler and process query
     filter_handler = DatabaseResultQueryHandler()
     result = filter_handler.process_filter_query(result_filter)
     list_of_result_dicts = convert_result(result)
     global global_filter_result
     global_filter_result = list_of_result_dicts
+    in_process = False
     return results_table()
 
 

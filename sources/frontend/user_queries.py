@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 classification_types = ["Amphibians",
                         "Animals",
@@ -46,7 +46,7 @@ class UserQueryInformation:
     classification_restriction: Optional[str] = None
 
 
-class UserQueryResponse: #TODO Remove
+class UserQueryResponse:  # TODO Remove
     def __init__(self, processed_data: list, message=None):
         self.processed_data = processed_data  # Data from Database
         self.message = message  # What still needs to be gathered (intervals)i
@@ -56,8 +56,9 @@ class UserQueryResponse: #TODO Remove
 class ResultFilter:
     """ResultFilter encapsulates the query restrictions.
     """
+
     def __init__(self,
-                 journal_names: list,
+                 journal_names: List[str],
                  from_pub_date: datetime.date,
                  to_pub_date: datetime.date,
 
@@ -76,3 +77,16 @@ class ResultFilter:
         self.to_pub_date = to_pub_date
         self.from_sync_date = from_sync_date
         self.to_sync_date = to_sync_date
+
+    def __eq__(self, other):
+        if not isinstance(other, ResultFilter):
+            return False
+        else:
+            return self.journal_names == other.journal_names and \
+                   self.from_sync_date == other.from_sync_date and \
+                   self.to_pub_date == other.to_pub_date and \
+                   self.to_sync_date == other.to_sync_date and \
+                   self.classification == other.classification and \
+                   self.remove_checked_articles == other.remove_checked_articles and \
+                   self.relevant_only == other.relevant_only and \
+                   self.journal_names == other.journal_names

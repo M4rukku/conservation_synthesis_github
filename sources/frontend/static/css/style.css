@@ -18,6 +18,12 @@
     padding-left: 0px;
 }
 
+.base{
+    height:100%;
+    width: 100%;
+    overflow: hidden;
+}
+
 h2 {
     margin-top: 20px !important;
 }
@@ -49,7 +55,8 @@ h2 {
 }
 
 #results-table {
-    max-height: 500px;
+    max-height: 70%;
+    max-width: 100%;
     margin: 25px;
     overflow-y: scroll;
     font-size: x-small;

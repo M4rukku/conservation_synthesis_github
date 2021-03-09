@@ -12,12 +12,13 @@
     <title>CE Dashboard</title>
   </head>
   <body>
-    <nav class="navbar navbar-light" style="background-color: #B3C200; color: #343434;"">
+  <div class="base">
+    <nav class="navbar navbar-light" style="width=100%; background-color: #B3C200; color: #343434;"">
         <a class="navbar-brand" href="{{ url_for('index')}}">Conservation Evidence Synthesis Dashboard</a>
     </nav>
     <div class="row">
         <div class="col-md-2">
-            <nav class="nav flex-column" style="height: 100vh; background-color: #343434;" id="sidebar">
+            <nav class="nav flex-column" style="height: 100%; background-color: #343434;" id="sidebar">
                 <a class="nav-link active" href="{{ url_for('index')}}">About</a>
                 <a class="nav-link" href="{{ url_for('search')}}">Search</a>
                 <a class="nav-link" href="{{ url_for('results')}}">Results</a>
@@ -28,6 +29,7 @@
             {% block content %} {% endblock %}
         </div>
     </div>
+  </div>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
