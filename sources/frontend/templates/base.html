@@ -20,9 +20,10 @@
         <div class="col-md-2">
             <nav class="nav flex-column" style="height: 100%; background-color: #343434;" id="sidebar">
                 <a class="nav-link active" href="{{ url_for('index')}}">About</a>
-                <a class="nav-link" href="{{ url_for('search')}}">Search</a>
-                <a class="nav-link" href="{{ url_for('results')}}">Results</a>
-                <a class="nav-link" href="{{ url_for('sync')}}">Sync</a>
+                <a class="nav-link" href="{{ url_for('search')}}">Sync Database</a>
+                <a class="nav-link" href="{{ url_for('results')}}">Query Database</a>
+                <a class="nav-link" href="{{ url_for('results_table')}}">Results Table</a>
+                <a class="nav-link" href="{{ url_for('sync')}}">Sync Status</a>
             </nav>
         </div>
         <div class="col-md-10" style="overflow-y: scroll">
