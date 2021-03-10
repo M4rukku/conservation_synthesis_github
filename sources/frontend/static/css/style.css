@@ -75,7 +75,7 @@ h2 {
     margin: 25px;
     flex: 0 0 97%;
     overflow-y: scroll;
-    font-size: x-small;
+    font-size: small;
 }
 
 #sidebar {

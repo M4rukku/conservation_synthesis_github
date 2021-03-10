@@ -1,4 +1,5 @@
 import math
+import textwrap
 from datetime import datetime, date
 from pathlib import Path
 
@@ -123,7 +124,6 @@ def results_table():
     else:
         to_article = from_article + articles_per_page
     articles_to_show = global_filter_result[from_article:to_article]
-    articles_to_show
     return render_template('results.html',
                            journal_name=get_journals(),
                            topic="Sync",
@@ -143,7 +143,7 @@ in_process = False
 # handle query input on the results page
 @app.route('/handle-results-query', methods=['POST'])
 def handle_results_query():
-    #Ensure
+    # Ensure
     global in_process
     if in_process:
         return
@@ -177,7 +177,7 @@ def handle_results_query():
                                  from_sync_date=sync_date_object,
                                  to_sync_date=date.today())
 
-    #Ensure we don't double load the same query
+    # Ensure we don't double load the same query
     global cached_query
     if cached_query == result_filter:
         in_process = False
@@ -197,23 +197,35 @@ def handle_results_query():
 # helper function that converts list of objects into dict that can be displayed as a table
 def convert_result(result_list):
     list_of_result_dicts = []
-    for article in result_list:
-        article_dict = {
+
+    def get_dict(article):
+        abstract = ""
+        if article.abstract is not None:
+            abstract = textwrap.wrap(article.abstract, width=80)
+            abstract = abstract[:min(len(abstract), 5)]
+            le = min(len(abstract), 6) - 1
+            abstract[le] = abstract[le] + "..."
+            abstract = "\n".join(abstract)
+
+        return {
             "URL": f"<a target=\"_blank\" href=\"http://{article.url}\">URL</a>",
             "Title": article.title,
-            "Authors": convert_list_to_string(article.authors),
+            "Authors": textwrap.shorten(convert_list_to_string(article.authors), width= 50, placeholder="..."),
+            "Abstract": abstract,
             "Publication Date": article.publication_date,
-            "Publisher": article.publisher,
+            # "Publisher": article.publisher,
             "Journal Name": article.journal_name,
-            "Journal Volume": article.journal_volume,
-            "Journal Issue": article.journal_issue,
-            "ISSN": article.issn,
+            # "Journal Volume": article.journal_volume,
+            # "Journal Issue": article.journal_issue,
+            # "ISSN": article.issn,
             "Sync Date": article.sync_date,
             "Checked?": article.checked,
-            "Classified?": article.classified,
+            # "Classified?": article.classified,
             "Relevant?": article.relevant
         }
-        list_of_result_dicts.append(article_dict)
+
+    for article in result_list:
+        list_of_result_dicts.append(get_dict(article))
     return list_of_result_dicts
 
 
