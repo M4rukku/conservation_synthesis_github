@@ -79,7 +79,8 @@ def handle_search_query():
     user_query_handler = UserQueryHandler()
 
     user_query_handler.process_user_query(user_query,
-                                          fetch_article_cb_freq=50,
+                                          fetch_article_cb_freq=25,
+                                          classify_data_cb_freq=25,
                                           start_execution_cb=start_executation_cb,
                                           classify_data_cb=classify_data_cb,
                                           fetch_article_cb=fetch_article_cb,
@@ -210,7 +211,7 @@ def convert_result(result_list):
         return {
             "URL": f"<a target=\"_blank\" href=\"http://{article.url}\">URL</a>",
             "Title": article.title,
-            "Authors": textwrap.shorten(convert_list_to_string(article.authors), width= 50, placeholder="..."),
+            "Authors": textwrap.shorten(convert_list_to_string(article.authors), width=50, placeholder="..."),
             "Abstract": abstract,
             "Publication Date": article.publication_date,
             # "Publisher": article.publisher,
