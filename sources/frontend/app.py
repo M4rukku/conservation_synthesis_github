@@ -224,8 +224,9 @@ def convert_result(result_list):
             "Relevant?": article.relevant
         }
 
-    for article in result_list:
-        list_of_result_dicts.append(get_dict(article))
+    if not result_list is None:
+        for article in result_list:
+            list_of_result_dicts.append(get_dict(article))
     return list_of_result_dicts
 
 
