@@ -34,7 +34,7 @@ def search():
     }
     criteria = {
         #'relevant_only': 'Return relevant articles only',
-        'all_journals': 'Search all journals'
+        'all_journals': 'Sync all journals'
     }
     return render_template('search.html', journal_name=get_journals(), dates=dates, criteria=criteria)
 
