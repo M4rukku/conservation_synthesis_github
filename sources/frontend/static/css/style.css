@@ -18,17 +18,31 @@
     padding-left: 0px;
 }
 
-.base{
-    height:100%;
+.base {
+    height: 100%;
     width: 100%;
     overflow: hidden;
+}
+
+html {
+    margin: 0px;
+    min-height: 100%;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    margin: 0px;
+    min-height: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 h2 {
     margin-top: 20px !important;
 }
 
-#grid_wrapper{
+#grid_wrapper {
     display: flex;
 }
 
