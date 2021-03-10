@@ -226,6 +226,8 @@ class QueryDispatcher:
                                  len(scraped_articles))
                 cnt = 0
 
+        classify_data_cb(len(scraped_articles_db_format), 1)
+
         with ArticleRepositoryAPI(self.article_database) as db:
             for article in scraped_articles_db_format:
                 db.store_article(article)

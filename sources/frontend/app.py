@@ -116,6 +116,7 @@ global_filter_result = []
 # display table of filter results (with pagination)
 @app.route('/results-table')
 def results_table():
+    global global_filter_result
     current_page = request.args.get('page', 1, type=int)
     articles_per_page = 10
     max_page = len(global_filter_result) // articles_per_page + 1
