@@ -123,6 +123,7 @@ def results_table():
     else:
         to_article = from_article + articles_per_page
     articles_to_show = global_filter_result[from_article:to_article]
+    articles_to_show
     return render_template('results.html',
                            journal_name=get_journals(),
                            topic="Sync",
@@ -198,7 +199,7 @@ def convert_result(result_list):
     list_of_result_dicts = []
     for article in result_list:
         article_dict = {
-            "URL": article.url,
+            "URL": f"<a target=\"_blank\" href=\"http://{article.url}\">URL</a>",
             "Title": article.title,
             "Authors": convert_list_to_string(article.authors),
             "Publication Date": article.publication_date,
