@@ -74,7 +74,7 @@ def handle_search_query():
     end_date = request.form['end_date']
     end_date_object = datetime.strptime(end_date, '%Y-%m-%d').date()
     # create user query object
-    user_query = UserQueryInformation(journals, start_date_object, end_date_object, relevant_only)
+    user_query = UserQueryInformation(journals, start_date_object, end_date_object)
     # create query handler and process query
     user_query_handler = UserQueryHandler()
 
