@@ -1,8 +1,10 @@
+import math
 from datetime import datetime, date
 from pathlib import Path
 
 import pandas as pd
 from flask import Flask, render_template, request
+from flask_socketio import SocketIO
 
 from sources.data_controller.controller_interface import \
     DatabaseResultQueryHandler
@@ -11,6 +13,9 @@ from sources.frontend.user_queries import ResultFilter
 from sources.frontend.user_queries import UserQueryInformation
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = "'secret!'"
+app.config['DEBUG'] = True
+socketio = SocketIO(app)
 
 
 # display about page
@@ -64,14 +69,21 @@ def handle_search_query():
                 journals.append(journal)
     print(journals)
     start_date = request.form['start_date']
-    start_date_object = datetime.strptime(start_date, '%Y-%m-%d')
+    start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = request.form['end_date']
-    end_date_object = datetime.strptime(end_date, '%Y-%m-%d')
+    end_date_object = datetime.strptime(end_date, '%Y-%m-%d').date()
     # create user query object
     user_query = UserQueryInformation(journals, start_date_object, end_date_object, relevant_only)
     # create query handler and process query
     user_query_handler = UserQueryHandler()
-    user_query_handler.process_user_query(user_query)
+
+    user_query_handler.process_user_query(user_query,
+                                          fetch_article_cb_freq=50,
+                                          start_execution_cb=start_executation_cb,
+                                          classify_data_cb=classify_data_cb,
+                                          fetch_article_cb=fetch_article_cb,
+                                          finished_execution_cb=finished_execution_cb,
+                                          )
     return search()
 
 
@@ -149,6 +161,7 @@ def handle_results_query():
         for journal in all_journals:
             if request.form.get(journal):
                 journals.append(journal)
+    print(journals)
     sync_date = request.form['sync_date']
     sync_date_object = datetime.strptime(sync_date, '%Y-%m-%d').date()
     start_date = request.form['start_date']
@@ -212,11 +225,48 @@ def convert_list_to_string(list_of_strings):
     return final_string
 
 
+# global variables for updating the sync pageSize
+download_stats = 0
+classification_stats = 0
+finished_stats = False
+
+
 @app.route('/sync')
 def sync():
-    return render_template('sync.html')
+    global finished_stats
+    global download_stats
+    global classification_stats
+    return render_template('sync.html', download_stats=download_stats, classification_stats=classification_stats,
+                           finished_stats=finished_stats)
+
+
+def fetch_article_cb(articles_downloaded_so_far: int, percentage_of_total: float):
+    global download_stats
+    download_stats = math.trunc(percentage_of_total * 100)
+    socketio.emit('download_update', {'download_stats': download_stats}, namespace='/sync')
+
+
+def classify_data_cb(articles_classified_so_far: int, percentage_of_total: float):
+    global classification_stats
+    classification_stats = math.trunc(percentage_of_total * 100)
+    socketio.emit('classification_update', {'classification_stats': classification_stats}, namespace='/sync')
+
+
+def finished_execution_cb():
+    global finished_stats
+    finished_stats = True
+    socketio.emit('finished_update', {'finished_stats': finished_stats}, namespace='/sync')
+
+
+def start_executation_cb():
+    global finished_stats
+    global download_stats
+    global classification_stats
+    finished_stats = False
+    download_stats = 0
+    classification_stats = 0
 
 
 # run flask under debug mode for development
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app)

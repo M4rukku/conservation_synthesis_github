@@ -4,6 +4,7 @@ pytest==6.2.2
 habanero==0.7.4
 cloudscraper==1.2.56
 Flask==1.1.2
+flask-socketio==5.0.1
 pandas==1.1.5
 jellyfish==0.8.2
 beautifulsoup4==4.9.3

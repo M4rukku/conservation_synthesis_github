@@ -1,7 +1,32 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.min.js" integrity="sha512-fANg+hKlIqBdTzgYBT8eFIlZgKYTLij0S7Afvda/rw/Rm33I9+74HSdR1Urz2zGgCSZiQweMin46+l1obnoLWQ==" crossorigin="anonymous"></script>
+    <script src="static/js/sync.js"></script>
+
+    <div>
     <h2>Sync</h2>
-    This page will demonstrate the current synchronization status for the database and different web repositories.</br>
-    This page will (hopefully) also demonstrate how the database are currently classified.(optional feature).
+    <p>This page display the synchronization status of the current job. When the <em>Finished Status</em> changes, that means the current job is completed.</p>
+    <div class="col-md-8">
+    <hr>
+    Paper Downloading Status:
+    <div class="progress" >
+        <div id="download" class="progress-bar bg-info" role="progressbar"  style="width: {{download_stats}}%" aria-valuenow="{{download_stats}}" aria-valuemin="0" aria-valuemax="100">{{download_stats}}%</div>
+    </div>
+    Paper Classification Status:
+    <div class="progress" >
+        <div  id="classification" class="progress-bar bg-info" role="progressbar" style="width: {{classification_stats}}%" aria-valuenow="{{classification_stats}}" aria-valuemin="0" aria-valuemax="100">{{classification_stats}}%</div>
+    </div>
+    Finished Status:
+    {% if finished_stats %}
+    <div>
+        <button id="finished" type="button" class="btn btn-info btn-lg" disabled>Finished</button>
+    </div>
+    {% else %}
+    <div>
+        <button id="finished" type="button" class="btn btn-secondary btn-lg" disabled>Not Finished</button>
+    </div>
+    {% endif %}
+
+    </div>
 {% endblock %}
