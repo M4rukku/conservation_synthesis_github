@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Search</h2>
+    <h2>Sync Database</h2>
     <div id="description">
         <p> Processing the search query (scraping abstracts and classifying them)
             might take a while - you can see the sync status on the <b>Sync</b> page.
@@ -12,7 +12,7 @@
         <form action="{{ url_for('handle_search_query') }}" method="POST" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-5">
-                    <h5>General Search Criteria</h5>
+                    <h5>Search Range</h5>
                     <hr>
                     {% include 'components/criteria.html' %}
                 </div>

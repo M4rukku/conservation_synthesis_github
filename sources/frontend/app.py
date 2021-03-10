@@ -33,7 +33,7 @@ def search():
         'end_date': 'Publication End'
     }
     criteria = {
-        'relevant_only': 'Return relevant articles only',
+        #'relevant_only': 'Return relevant articles only',
         'all_journals': 'Search all journals'
     }
     return render_template('search.html', journal_name=get_journals(), dates=dates, criteria=criteria)
@@ -56,10 +56,10 @@ def get_journals():
 @app.route('/handle-search-query', methods=['POST'])
 def handle_search_query():
     # get all form fields
-    if request.form.get('relevant_only'):
-        relevant_only = True
-    else:
-        relevant_only = False
+    #if request.form.get('relevant_only'):
+    #    relevant_only = True
+    #else:
+    #    relevant_only = False
     all_journals = get_journals()
     if request.form.get('all_journals'):
         journals = all_journals
@@ -68,7 +68,7 @@ def handle_search_query():
         for journal in all_journals:
             if request.form.get(journal):
                 journals.append(journal)
-    print(journals)
+
     start_date = request.form['start_date']
     start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = request.form['end_date']
@@ -93,7 +93,7 @@ def handle_search_query():
 @app.route('/results')
 def results():
     dates = {
-        'sync_date': 'Sync',
+        #'sync_date': 'Sync',
         'start_date': 'Publication Start',
         'end_date': 'Publication End'
     }
@@ -164,9 +164,9 @@ def handle_results_query():
         for journal in all_journals:
             if request.form.get(journal):
                 journals.append(journal)
-    print(journals)
-    sync_date = request.form['sync_date']
-    sync_date_object = datetime.strptime(sync_date, '%Y-%m-%d').date()
+
+    sync_date = date(2000, 1, 1) #request.form['sync_date']
+    sync_date_object = sync_date # datetime.strptime(sync_date, '%Y-%m-%d').date()
     start_date = request.form['start_date']
     start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = request.form['end_date']
