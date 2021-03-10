@@ -1,10 +1,13 @@
 from sources.data_processing.queries import ArticleMetadata
+from sources.ml_model.pytorch_model import PytorchModel
+
 
 class MlModelWrapper:
     """The interface that needs to be implemented by the MLModel.
     """    
     def __init__(self, classifier=None):
-        self.classifier = classifier
+        self.classifier = PytorchModel()
+
 
     def predict_article(self, article: ArticleMetadata) -> bool:
         """Predicts the relevance of an article based on its abstract.
@@ -14,5 +17,6 @@ class MlModelWrapper:
 
         Returns:
             bool: True if relevant, 0 otherwise.
-        """        
+        """
         return False
+        #return self.classifier.do_prediction(article.title, article.journal_name, article.abstract)
