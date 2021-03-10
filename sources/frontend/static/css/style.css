@@ -71,7 +71,9 @@ h2 {
 #results-table {
     max-height: 80%;
     max-width: 100%;
+    width: 100%;
     margin: 25px;
+    flex: 0 0 97%;
     overflow-y: scroll;
     font-size: x-small;
 }
