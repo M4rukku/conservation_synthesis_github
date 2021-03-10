@@ -69,7 +69,7 @@ h2 {
 }
 
 #results-table {
-    max-height: 70%;
+    max-height: 80%;
     max-width: 100%;
     margin: 25px;
     overflow-y: scroll;
