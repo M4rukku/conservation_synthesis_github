@@ -176,23 +176,24 @@ def handle_results_query():
 # helper function that converts list of objects into dict that can be displayed as a table
 def convert_result(result_list):
     list_of_result_dicts = []
-    for article in result_list:
-        article_dict = {
-            "URL": article.url,
-            "Title": article.title,
-            "Authors": convert_list_to_string(article.authors),
-            "Publication Date": article.publication_date,
-            "Publisher": article.publisher,
-            "Journal Name": article.journal_name,
-            "Journal Volume": article.journal_volume,
-            "Journal Issue": article.journal_issue,
-            "ISSN": article.issn,
-            "Sync Date": article.sync_date,
-            "Checked?": article.checked,
-            "Classified?": article.classified,
-            "Relevant?": article.relevant
-        }
-        list_of_result_dicts.append(article_dict)
+    if not result_list is None:
+        for article in result_list:
+            article_dict = {
+                "URL": article.url,
+                "Title": article.title,
+                "Authors": convert_list_to_string(article.authors),
+                "Publication Date": article.publication_date,
+                "Publisher": article.publisher,
+                "Journal Name": article.journal_name,
+                "Journal Volume": article.journal_volume,
+                "Journal Issue": article.journal_issue,
+                "ISSN": article.issn,
+                "Sync Date": article.sync_date,
+                "Checked?": article.checked,
+                "Classified?": article.classified,
+                "Relevant?": article.relevant
+            }
+            list_of_result_dicts.append(article_dict)
     return list_of_result_dicts
 
 
