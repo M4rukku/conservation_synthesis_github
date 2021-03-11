@@ -1,9 +1,9 @@
-from ml_pipeline.train_BERT import BERT_PATH, MAX_LEN
-import torch
-from transofmrers import DistilBertTokenizerFast,DistilBertModel
 from pathlib import Path
 
-BERT_PATH = Path(".")/"distilled_bert_model"
+import torch
+from transformers import DistilBertTokenizerFast, DistilBertModel
+
+from ml_pipeline.train_BERT import BERT_PATH, MAX_LEN
 
 
 class DistillBERTClass(torch.nn.Module):
