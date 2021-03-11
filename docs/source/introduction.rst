@@ -1,4 +1,4 @@
-H1 -- Top of Page Header
+Automating Conservation Synthesis
 ************************
 
 This is an introduction to the project...
