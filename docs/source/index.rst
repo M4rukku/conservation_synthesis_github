@@ -12,6 +12,8 @@ Welcome to conservation_synthesis's documentation!
 
    readme
    introduction
+   deployment
+   data
    modules 
 
 

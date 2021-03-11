@@ -78,4 +78,5 @@ docker-compose up -d
 
 after the initalization process is finished(which takes some time due to the large amount of docker containers pulled), you can use the webservice now on [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
+
 for the computer other than the host to visit the webservice, you can use http://YOUR_IP_ADDRESS:5000
