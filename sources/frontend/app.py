@@ -148,7 +148,7 @@ def handle_results_query():
     # Ensure
     global in_process
     if in_process:
-        return
+        return results_table()
     in_process = True
 
     # get all form fields
