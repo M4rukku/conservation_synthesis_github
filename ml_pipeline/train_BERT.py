@@ -1,16 +1,14 @@
 from pathlib import Path
+
+import numpy as np
 import pandas as pd
-import sklearn
-from sklearn import metrics
-from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
-from torch import cuda
 import transformers
-from transformers import DistilBertModel, DistilBertTokenizerFast
+from sklearn import metrics
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
-import numpy as np
+from transformers import DistilBertTokenizerFast
 
 #import the data
 x_relevance_data_path = Path(".") / "ml_data" / "x_relevance_data_v1.pd.json"
@@ -37,7 +35,7 @@ MAX_LEN = 512 #NB this is to truncate everything after that!
 BATCH_SIZE = 32*16
 LEARNING_RATE = 1e-05
 tokenizer = DistilBertTokenizerFast.from_pretrained(
-    'distilbert-base-uncased'，
+    'distilbert-base-uncased',
     do_lower_case=True #note that the tokenizer only recongnize lower case character
 )
 

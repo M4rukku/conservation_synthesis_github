@@ -211,15 +211,29 @@ class QueryDispatcher:
         classifier = MlModelWrapper()
         cnt = 0
 
+        scraped_articles = [Response(1, ArticleMetadata(title="Lower land use intensity promoted soil macrofaunal biodiversity on a reclaimed coast after land use conversion",
+                                            authors="Boping Tang;Baoming Ge;Yang Li;Senhao Jiang;Jing Zhou;Yang Ruiping",
+                                            abstract="Abstract Land reclamation is a practice that dates back thousands of years, due to population growth and social development over time. In the past, reclaimed lands were mainly used as croplands with intensive land use. In recent decades, conversion to lower-intensity use has occurred, such as on the coast of China. Here, we selected a study area that was reclaimed approximately 100 years ago on the coast of the Yellow Sea, Jiangsu, China. We identified different land uses: paddy, upland, upland-forest, forest, and vegetable garden. Land use intensity was assigned and scored by input and output indicators. Macrofaunal communities and soil properties were analyzed to detect variations among habitats. The structural and functional composition of the soil macrofaunal community varied significantly with soil properties. After the cropland was converted to forest, the biodiversity indices increased and the soil macrofaunal community became more complex, with expanding groups of detritivores and predators. However, trends observed among herbivores and omnivores did not vary significantly. The highest salinity and bulk density were found in the forest. The highest nutrient contents, such as soil organic carbon, total nitrogen, and total phosphorous, were found in the vegetable garden. Higher soil moisture content was found in the forest and vegetable garden. Soil moisture was identified as the key soil property in shaping the soil macrofaunal community. Furthermore, soil moisture and salinity were selected in the optimal regression models for explaining the measured parameters of soil macrofaunal communities, including taxonomic richness, density, Shannon index, and Margalef index. Variations in the soil macrofaunal community should be regarded as a comprehensive response to the changes in soil properties co-varying with land use conversion. Our findings indicated that land use conversion with lower land use intensity increased soil macrofaunal biodiversity at the reclaimed coast.",
+                                            journal_name="Agriculture, Ecosystems & Environment"))]
+
         for response in scraped_articles:
             article = response.metadata
             relevant = False
             cnt = cnt + 1
             if article.abstract is not None and article.abstract != "":
                 relevant = classifier.predict_article(article)
+
+            print(f"Article Nr. {cnt}")
+            print(article.title)
+            print(relevant)
+            print("\n\n")
+
             scraped_articles_db_format.append(
                 map_to_db_metadata(article, relevant)
             )
+
+            if cnt >5:
+                break
             if cnt > classify_data_cb_freq and classify_data_cb is not None:
                 classify_data_cb(len(scraped_articles_db_format),
                                  len(scraped_articles_db_format) /

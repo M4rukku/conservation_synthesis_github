@@ -54,7 +54,13 @@ def run_delegator(query_delegation_queue: AsyncMTQueue,
     event_loop = asyncio.new_event_loop()
     asyncio.set_event_loop(event_loop)
     event_loop.run_until_complete(delegator.process_queries())
-    event_loop.close()
+    for task in asyncio.all_tasks():
+        task.cancel()
+    try:
+        asyncio.get_event_loop().stop()
+        event_loop.close()
+    except Exception:
+        pass
 
 
 class QueryCounter:

@@ -3,6 +3,7 @@ from pathlib import Path
 import torch
 from transformers import DistilBertTokenizerFast, DistilBertModel
 
+
 class DistillBERTClass(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -24,7 +25,7 @@ class PytorchModel:
         self.max_len=512
         self.tokenizer=DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased', do_lower_case=True) #note that the tokenizer only recongnize lower case character
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.checkpoint=torch.load(Path('.')/"ml_model_checkpoints"/"checkpoints_epoch9.pth")
+        self.checkpoint=torch.load(Path(__file__).parent/"ml_model_checkpoints"/"checkpoints_epoch9.pth")
         self.model=model_class
         self.model.load_state_dict(self.checkpoint['model_state_dict'])
         self.model.eval()

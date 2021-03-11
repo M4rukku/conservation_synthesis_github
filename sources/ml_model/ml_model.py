@@ -16,7 +16,6 @@ class MlModelWrapper:
             article (ArticleMetadata): The article to be judged.
 
         Returns:
-            bool: True if relevant, 0 otherwise.
+            bool: True if relevant, False otherwise.
         """
-        return False
-        #return self.classifier.do_prediction(article.title, article.journal_name, article.abstract)
+        return self.classifier.do_prediction(article.title, article.journal_name, article.abstract)
