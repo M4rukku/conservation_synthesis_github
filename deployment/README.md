@@ -59,9 +59,16 @@ which should give you a table like this:
 | Processes:                                                       GPU Memory |
 |  GPU       PID  Type  Process name                               Usage      |
 |=============================================================================|
-|  No running processes found                                                 |
+|  No running processes found ß                                                |
 +-----------------------------------------------------------------------------+
 ```
+
+# Downloading the database and ml model checkpoints
+
+Download the database and ml_model_checkponts
+
+* unzip the database under `/sources/databases/file_databases`
+* unzip the ml_model_checkpoints and put each `.pth`file under `/sources/ml__model/ml_model_checkpoints`
 
 # Deploying the application
 
