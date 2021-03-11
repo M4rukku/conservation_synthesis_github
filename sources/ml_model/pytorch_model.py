@@ -22,7 +22,7 @@ class DistillBERTClass(torch.nn.Module):
         return output
 
 class PytorchModel:
-    def __init__(self,modelClass):
+    def __init__(self,modelClass=DistilBertModel):
         #setup codde for inference
         self.max_len=512
         self.tokenizer=DistilBertTokenizerFast.from_pretrained(BERT_PATH, do_lower_case=True) #note that the tokenizer only recongnize lower case character
