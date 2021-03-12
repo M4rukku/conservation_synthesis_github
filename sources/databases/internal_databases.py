@@ -89,6 +89,22 @@ class SQLiteDB(InternalSQLDatabase):
         except Exception as e:
             pass
 
+    def _get_all_data(self):
+        cur = self._con.cursor()
+        query = "SELECT * FROM articles"
+        return cur.execute(query)
+
+    def _update_relevance(self, id: str, relevant: bool, relevance_score: float):
+        cur = self._con.cursor()
+
+        entries = [relevant, relevance_score, id]
+        update = "UPDATE articles SET checked = ?, relevance_score = ? WHERE id = ?"
+
+        try:
+            cur.execute(update, entries)
+        except Exception as e:
+            pass
+
     @staticmethod
     def map_tuple_to_db_article(tuple):
         return DBArticleMetadata(title=tuple[1],
