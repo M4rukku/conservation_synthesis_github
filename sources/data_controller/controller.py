@@ -10,7 +10,6 @@ from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
     JournalDaterangeResponse, FailedQueryResponse, DoiQuery, KeywordQuery, \
     ArticleMetadata, JournalData
-from sources.databases.article_data_db import ArticleRepositoryAPI
 from sources.databases.daterange_util import Daterange, DaterangeUtility
 from sources.databases.db_definitions import DBArticleMetadata
 from sources.databases.internal_databases import SQLiteDB, InternalSQLDatabase
@@ -65,6 +64,7 @@ def get_unknown_date_ranges(query: UserQueryInformation) -> Dict[str, Set[Datera
             query_ranges[name] = DaterangeUtility.reduce_ranges(query_ranges[name])
 
     return query_ranges
+
 
 def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
     return DBArticleMetadata(title=article.title,
@@ -199,11 +199,11 @@ class QueryDispatcher:
                                                             unknown_date_ranges)
 
         # DELEGATE ALL QUERIES and handle them accordingly
-        scraped_articles = \
-            self._scrape_queries_with_paperscraper(queries,
-                                                   g_query_id,
-                                                   fetch_article_cb,
-                                                   fetch_article_cb_freq)
+        # scraped_articles = \
+        #     self._scrape_queries_with_paperscraper(queries,
+        #                                            g_query_id,
+        #                                            fetch_article_cb,
+        #                                            fetch_article_cb_freq)
 
         # Now that we have all queries use the ML Model to judge them and
         # store them as Article_DB_Format
@@ -211,10 +211,20 @@ class QueryDispatcher:
         classifier = MlModelWrapper()
         cnt = 0
 
-        #scraped_articles = [Response(1, ArticleMetadata(title="Lower land use intensity promoted soil macrofaunal biodiversity on a reclaimed coast after land use conversion",
-        #                                    authors="Boping Tang;Baoming Ge;Yang Li;Senhao Jiang;Jing Zhou;Yang Ruiping",
-        #                                    abstract="Abstract Land reclamation is a practice that dates back thousands of years, due to population growth and social development over time. In the past, reclaimed lands were mainly used as croplands with intensive land use. In recent decades, conversion to lower-intensity use has occurred, such as on the coast of China. Here, we selected a study area that was reclaimed approximately 100 years ago on the coast of the Yellow Sea, Jiangsu, China. We identified different land uses: paddy, upland, upland-forest, forest, and vegetable garden. Land use intensity was assigned and scored by input and output indicators. Macrofaunal communities and soil properties were analyzed to detect variations among habitats. The structural and functional composition of the soil macrofaunal community varied significantly with soil properties. After the cropland was converted to forest, the biodiversity indices increased and the soil macrofaunal community became more complex, with expanding groups of detritivores and predators. However, trends observed among herbivores and omnivores did not vary significantly. The highest salinity and bulk density were found in the forest. The highest nutrient contents, such as soil organic carbon, total nitrogen, and total phosphorous, were found in the vegetable garden. Higher soil moisture content was found in the forest and vegetable garden. Soil moisture was identified as the key soil property in shaping the soil macrofaunal community. Furthermore, soil moisture and salinity were selected in the optimal regression models for explaining the measured parameters of soil macrofaunal communities, including taxonomic richness, density, Shannon index, and Margalef index. Variations in the soil macrofaunal community should be regarded as a comprehensive response to the changes in soil properties co-varying with land use conversion. Our findings indicated that land use conversion with lower land use intensity increased soil macrofaunal biodiversity at the reclaimed coast.",
-        #                                    journal_name="Agriculture, Ecosystems & Environment"))]
+        scraped_articles = [
+            Response(1, ArticleMetadata(
+                doi="1010", publication_date=datetime.date(2000, 1, 1).isoformat(), repo_identifier="no_repo",
+                title="Lower land use intensity promoted soil macrofaunal biodiversity on a reclaimed coast after land use conversion",
+                authors="Boping Tang;Baoming Ge;Yang Li;Senhao Jiang;Jing Zhou;Yang Ruiping",
+                abstract="Abstract Land reclamation is a practice that dates back thousands of years, due to population growth and social development over time. In the past, reclaimed lands were mainly used as croplands with intensive land use. In recent decades, conversion to lower-intensity use has occurred, such as on the coast of China. Here, we selected a study area that was reclaimed approximately 100 years ago on the coast of the Yellow Sea, Jiangsu, China. We identified different land uses: paddy, upland, upland-forest, forest, and vegetable garden. Land use intensity was assigned and scored by input and output indicators. Macrofaunal communities and soil properties were analyzed to detect variations among habitats. The structural and functional composition of the soil macrofaunal community varied significantly with soil properties. After the cropland was converted to forest, the biodiversity indices increased and the soil macrofaunal community became more complex, with expanding groups of detritivores and predators. However, trends observed among herbivores and omnivores did not vary significantly. The highest salinity and bulk density were found in the forest. The highest nutrient contents, such as soil organic carbon, total nitrogen, and total phosphorous, were found in the vegetable garden. Higher soil moisture content was found in the forest and vegetable garden. Soil moisture was identified as the key soil property in shaping the soil macrofaunal community. Furthermore, soil moisture and salinity were selected in the optimal regression models for explaining the measured parameters of soil macrofaunal communities, including taxonomic richness, density, Shannon index, and Margalef index. Variations in the soil macrofaunal community should be regarded as a comprehensive response to the changes in soil properties co-varying with land use conversion. Our findings indicated that land use conversion with lower land use intensity increased soil macrofaunal biodiversity at the reclaimed coast.",
+                journal_name="Agriculture, Ecosystems & Environment")),
+            Response(2, ArticleMetadata(
+                doi="1010", publication_date=datetime.date(2000, 1, 1).isoformat(),
+                repo_identifier="no_repo",
+                title="Bird use of revegetated sites along a creek connecting rainforest remnants",
+                authors="Boping Tang;Baoming Ge;Yang Li;Senhao Jiang;Jing Zhou;Yang Ruiping",
+                abstract="The success of the Peterson Creek Revegetation Project, near Yungaburra, Queensland, in providing habitat for rainforest-associated birds was monitored for the first seven years of the project from 1999. Regular 20-min area surveys showed that small and large remnants and plantings all differed in their avian communities. Major contributors to these differences were a suite of rainforest-associated birds that were more abundant in the remnants. Ordination showed that avian communities in plantings 4\u20137 years after their establishment were generally more similar to those in remnants than were the bird communities of younger plantings. Avian communities in the oldest of the planted sites all changed markedly through time and became more similar to the avian communities in the closest remnant sites. Rainforest-associated birds were observed in plantings as early as 1\u20133 years after their establishment and some rainforest dependent species were observed as early as 3\u20134 years after establishment. Of the rainforest-associated bird species observed in the remnants, 55% were also recorded in the plantings at some stage during the study. These results suggest that the project will be successful in providing a corridor between formerly isolated forest patches, at least for some species.",
+                journal_name="Agriculture, Ecosystems & Environment"))]
 
         for response in scraped_articles:
             article = response.metadata
@@ -223,10 +233,14 @@ class QueryDispatcher:
             if article.abstract is not None and article.abstract != "":
                 relevant = classifier.predict_article(article)
 
-
             scraped_articles_db_format.append(
                 map_to_db_metadata(article, relevant)
             )
+            print("ARTICLE JUDGEMENT", flush=True)
+            print(f"IS : {relevant}", flush=True)
+
+            if cnt > 2:
+                break
 
             if cnt > classify_data_cb_freq and classify_data_cb is not None:
                 classify_data_cb(len(scraped_articles_db_format),
@@ -236,15 +250,15 @@ class QueryDispatcher:
 
         classify_data_cb(len(scraped_articles_db_format), 1)
 
-        with ArticleRepositoryAPI(self.article_database) as db:
-            for article in scraped_articles_db_format:
-                db.store_article(article)
-
-        with PrevQueryInformation() as db:
-            for name, ranges in unknown_date_ranges.items():
-                for range in ranges:
-                    db.insert_successful_query(issns[name], range)
-                db.merge_ranges(issns[name])
+        # with ArticleRepositoryAPI(self.article_database) as db:
+        #     for article in scraped_articles_db_format:
+        #         db.store_article(article)
+        #
+        # with PrevQueryInformation() as db:
+        #     for name, ranges in unknown_date_ranges.items():
+        #         for range in ranges:
+        #             db.insert_successful_query(issns[name], range)
+        #         db.merge_ranges(issns[name])
 
         if finished_execution_cb is not None:
             finished_execution_cb()

@@ -26,11 +26,16 @@ class PytorchModel:
         self.max_len = 512
         self.tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased',
                                                                  do_lower_case=True)  # note that the tokenizer only recongnize lower case character
+
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
         state_dict_path = Path(__file__).parent / "ml_model_checkpoints" / "state_dict_cp_9.pth"
         self.model = DistillBERTClass()
-        self.model.load_state_dict(torch.load(state_dict_path))
+        if self.device == torch.device('cpu'):
+            self.model.load_state_dict(torch.load(state_dict_path), map_location=self.device)
+        else:
+            self.model.load_state_dict(torch.load(state_dict_path))
+            self.model.to(self.device)
         self.model.eval()
 
     def do_prediction(self, title, journal_name, abstract):
@@ -54,7 +59,9 @@ class PytorchModel:
         ids = ids.to(self.device, dtype=torch.long)
         mask = mask.to(self.device, dtype=torch.long)
 
+        print("Starting Prediction", flush=True)
         outputs = self.model.forward(ids=ids, mask=mask)
+        print(f"Finished Prediction {outputs[0][0]}", flush=True)
 
         outputs = torch.sigmoid(outputs).cpu().detach().numpy()
-        return outputs[0][0] > 0.5
+        return outputs[0][0] > 0, outputs[0][0]
