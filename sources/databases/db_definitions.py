@@ -28,6 +28,7 @@ class DBArticleMetadata:
 
     classified: Optional[str] = None
     relevant: bool = False
+    relevance_score: Optional[float] = None
 
     def to_json(self):
         return json.dumps(asdict(self))

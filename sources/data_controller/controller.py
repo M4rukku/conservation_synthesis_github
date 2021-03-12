@@ -10,6 +10,7 @@ from sources.data_processing.paper_scraper_api import PaperScraper
 from sources.data_processing.queries import ISSNTimeIntervalQuery, Response, \
     JournalDaterangeResponse, FailedQueryResponse, DoiQuery, KeywordQuery, \
     ArticleMetadata, JournalData
+from sources.databases.article_data_db import ArticleRepositoryAPI
 from sources.databases.daterange_util import Daterange, DaterangeUtility
 from sources.databases.db_definitions import DBArticleMetadata
 from sources.databases.internal_databases import SQLiteDB, InternalSQLDatabase
@@ -66,7 +67,7 @@ def get_unknown_date_ranges(query: UserQueryInformation) -> Dict[str, Set[Datera
     return query_ranges
 
 
-def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
+def map_to_db_metadata(article: ArticleMetadata, relevant: bool, relevance_score: Optional[float]):
     return DBArticleMetadata(title=article.title,
                              authors=article.authors,
                              doi=article.doi,
@@ -81,6 +82,7 @@ def map_to_db_metadata(article: ArticleMetadata, relevant: bool):
                              issn=article.issn,
                              url=f"https://doi.org/{article.doi}",
                              relevant=relevant,
+                             relevance_score=relevance_score,
                              classified="NA",
                              checked=False,
                              sync_date=datetime.date.today().isoformat())
@@ -211,7 +213,7 @@ class QueryDispatcher:
         classifier = MlModelWrapper()
         cnt = 0
 
-        #Testing
+        # Testing
         # scraped_articles = [
         #     Response(1, ArticleMetadata(
         #         doi="1010", publication_date=datetime.date(2000, 1, 1).isoformat(), repo_identifier="no_repo",
@@ -230,14 +232,15 @@ class QueryDispatcher:
         for response in scraped_articles:
             article = response.metadata
             relevant = False
+            relevance_score = None
             cnt = cnt + 1
             if article.abstract is not None and article.abstract != "":
-                relevant = classifier.predict_article(article)
+                relevant, relevance_score = classifier.predict_article(article)
 
             scraped_articles_db_format.append(
-                map_to_db_metadata(article, relevant)
+                map_to_db_metadata(article, relevant, relevance_score)
             )
-            #Testing
+            # Testing
             # print("ARTICLE JUDGEMENT", flush=True)
             # print(f"IS : {relevant}", flush=True)
             #
@@ -252,15 +255,15 @@ class QueryDispatcher:
 
         classify_data_cb(len(scraped_articles_db_format), 1)
 
-        # with ArticleRepositoryAPI(self.article_database) as db:
-        #     for article in scraped_articles_db_format:
-        #         db.store_article(article)
-        #
-        # with PrevQueryInformation() as db:
-        #     for name, ranges in unknown_date_ranges.items():
-        #         for range in ranges:
-        #             db.insert_successful_query(issns[name], range)
-        #         db.merge_ranges(issns[name])
+        with ArticleRepositoryAPI(self.article_database) as db:
+            for article in scraped_articles_db_format:
+                db.store_article(article)
+
+        with PrevQueryInformation() as db:
+            for name, ranges in unknown_date_ranges.items():
+                for range in ranges:
+                    db.insert_successful_query(issns[name], range)
+                db.merge_ranges(issns[name])
 
         if finished_execution_cb is not None:
             finished_execution_cb()

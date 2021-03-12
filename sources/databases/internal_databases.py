@@ -108,6 +108,7 @@ class SQLiteDB(InternalSQLDatabase):
                                  checked=False if tuple[15] == 0 else True,
                                  classified=tuple[16],
                                  relevant=False if tuple[17] == 0 else True,
+                                 relevance_score=tuple[18]
                                  )
 
     def perform_filter_query(self,
@@ -160,8 +161,8 @@ class SQLiteDB(InternalSQLDatabase):
         insertion = """INSERT INTO articles(title, authors, doi, 
         publication_date, abstract, repo_identifier, "language", publisher,
         journal_name, journal_volume, journal_issue, issn, url, sync_date, 
-        checked, classified, relevant) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
-        ?,?) """
+        checked, classified, relevant, relevance_score) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
+        ?,?,?) """
 
         data = (metadata.title,
                 authors_to_string(metadata.authors),
@@ -179,7 +180,8 @@ class SQLiteDB(InternalSQLDatabase):
                 metadata.sync_date,
                 1 if metadata.checked else 0,
                 metadata.classified,
-                1 if metadata.relevant else 0)
+                1 if metadata.relevant else 0,
+                metadata.relevance_score)
         try:
             cur.execute(insertion, data)
         except Exception as e:
