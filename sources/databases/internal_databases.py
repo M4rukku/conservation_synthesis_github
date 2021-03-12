@@ -85,20 +85,21 @@ class SQLiteDB(InternalSQLDatabase):
         update = "UPDATE articles SET checked = ? WHERE doi = ?"
 
         try:
-            cur.execute(update, entries)
+            cur.execute(update, entries).fetchall()
         except Exception as e:
             pass
 
-    def _get_all_data(self):
+    def _get_all_data(self, id_lower_limit, id_upper_limit):
         cur = self._con.cursor()
-        query = "SELECT * FROM articles"
-        return cur.execute(query)
+        entries = [id_lower_limit, id_upper_limit]
+        query = "SELECT * FROM articles WHERE id >= ? AND id < ?"
+        return cur.execute(query, entries).fetchall()
 
     def _update_relevance(self, id: str, relevant: bool, relevance_score: float):
         cur = self._con.cursor()
 
-        entries = [relevant, relevance_score, id]
-        update = "UPDATE articles SET checked = ?, relevance_score = ? WHERE id = ?"
+        entries = [relevant, f"{relevance_score:.8f}" if relevance_score is not None else relevance_score, id]
+        update = "UPDATE articles SET relevant = ?, relevance_score = ? WHERE id = ?"
 
         try:
             cur.execute(update, entries)
@@ -124,7 +125,7 @@ class SQLiteDB(InternalSQLDatabase):
                                  checked=False if tuple[15] == 0 else True,
                                  classified=tuple[16],
                                  relevant=False if tuple[17] == 0 else True,
-                                 relevance_score=tuple[18]
+                                 relevance_score=float(tuple[18]) if tuple[18] is not None else None
                                  )
 
     def perform_filter_query(self,
@@ -197,7 +198,7 @@ class SQLiteDB(InternalSQLDatabase):
                 1 if metadata.checked else 0,
                 metadata.classified,
                 1 if metadata.relevant else 0,
-                metadata.relevance_score)
+                f"{metadata.relevance_score:.8f}" if metadata.relevance_score is not None else None)
         try:
             cur.execute(insertion, data)
         except Exception as e:

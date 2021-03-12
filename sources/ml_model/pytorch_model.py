@@ -64,4 +64,4 @@ class PytorchModel:
         # print(f"Finished Prediction {outputs[0][0]}", flush=True)
 
         outputs = torch.sigmoid(outputs).cpu().detach().numpy()
-        return outputs[0][0] > 0, outputs[0][0]
+        return outputs[0][0] > 0.5, outputs[0][0]
