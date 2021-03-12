@@ -8,9 +8,9 @@ class DistillBERTClass(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.distill_bert = DistilBertModel.from_pretrained('distilbert-base-uncased')
-        self.drop = torch.nn.Dropout(0.3) #p is a magic number
+        self.drop = torch.nn.Dropout(0.3)  # p is a magic number
         self.out = torch.nn.Linear(768, 1)
-    
+
     def forward(self, ids, mask):
         distilbert_output = self.distill_bert(ids, mask)
         hidden_state = distilbert_output[0]  # (bs, seq_len, dim)
@@ -19,17 +19,20 @@ class DistillBERTClass(torch.nn.Module):
         output = self.out(output_1)
         return output
 
+
 class PytorchModel:
-    def __init__(self,model_class=DistilBertModel):
-        #setup codde for inference
-        self.max_len=512
-        self.tokenizer=DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased', do_lower_case=True) #note that the tokenizer only recongnize lower case character
+    def __init__(self, model_class=DistillBERTClass):
+        # setup codde for inference
+        self.max_len = 512
+        self.tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased',
+                                                                 do_lower_case=True)  # note that the tokenizer only recongnize lower case character
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.checkpoint=torch.load(Path(__file__).parent/"ml_model_checkpoints"/"checkpoints_epoch9.pth")
-        self.model=model_class
-        self.model.load_state_dict(self.checkpoint['model_state_dict'])
+
+        state_dict_path = Path(__file__).parent / "ml_model_checkpoints" / "state_dict_cp_9.pth"
+        self.model = DistillBERTClass()
+        self.model.load_state_dict(torch.load(state_dict_path))
         self.model.eval()
-        
+
     def do_prediction(self, title, journal_name, abstract):
         max_len = 512
         text = str(title) + " " + str(abstract)
@@ -51,9 +54,7 @@ class PytorchModel:
         ids = ids.to(self.device, dtype=torch.long)
         mask = mask.to(self.device, dtype=torch.long)
 
-        outputs = self.model(ids=ids, mask=mask)
+        outputs = self.model.forward(ids=ids, mask=mask)
 
         outputs = torch.sigmoid(outputs).cpu().detach().numpy()
         return outputs[0][0] > 0.5
-
-    

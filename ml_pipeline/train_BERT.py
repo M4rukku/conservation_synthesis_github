@@ -117,7 +117,7 @@ class DistillBERTClass(torch.nn.Module):
 #setting up the CUDA enviroment and use all avaliable GPU
 device = torch.device('cuda')
 #sending the model to the device with nn.DataParallel wraps around
-model = torch.nn.DataParallel(DistillBERTClass(),device_ids=list(range(8))).to(device)
+model = torch.nn.DataParallel(DistillBERTClass(), device_ids=list(range(8))).to(device)
 
 # print(model)
 
