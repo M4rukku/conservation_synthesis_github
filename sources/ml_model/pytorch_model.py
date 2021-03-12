@@ -59,9 +59,9 @@ class PytorchModel:
         ids = ids.to(self.device, dtype=torch.long)
         mask = mask.to(self.device, dtype=torch.long)
 
-        print("Starting Prediction", flush=True)
+        # print("Starting Prediction", flush=True)
         outputs = self.model.forward(ids=ids, mask=mask)
-        print(f"Finished Prediction {outputs[0][0]}", flush=True)
+        # print(f"Finished Prediction {outputs[0][0]}", flush=True)
 
         outputs = torch.sigmoid(outputs).cpu().detach().numpy()
         return outputs[0][0] > 0, outputs[0][0]
