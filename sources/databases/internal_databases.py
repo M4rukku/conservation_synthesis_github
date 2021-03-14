@@ -106,6 +106,18 @@ class SQLiteDB(InternalSQLDatabase):
         except Exception as e:
             pass
 
+    def _update_col(self, id: str, col_name:str, value):
+        cur = self._con.cursor()
+
+        entries = [value, id]
+        update = f"UPDATE articles SET {col_name} = ? WHERE id = ?"
+
+        try:
+            cur.execute(update, entries)
+        except Exception as e:
+            pass
+
+
     @staticmethod
     def map_tuple_to_db_article(tuple):
         return DBArticleMetadata(title=tuple[1],
@@ -148,9 +160,10 @@ class SQLiteDB(InternalSQLDatabase):
             query += " AND sync_date <= date(?)"
 
         # JOURNAL LIST
-        entries.extend(rfilter.journal_names)
-        journal_placeholders = "?" * len(rfilter.journal_names)
-        query += " AND journal_name IN ({})".format(', '.join(journal_placeholders))
+        if not rfilter.all_journals:
+            entries.extend(rfilter.journal_names)
+            journal_placeholders = "?" * len(rfilter.journal_names)
+            query += " AND journal_name IN ({})".format(', '.join(journal_placeholders))
 
         # BOOLS
         if rfilter.relevant_only:

@@ -229,6 +229,8 @@ class QueryDispatcher:
         #         abstract="The success of the Peterson Creek Revegetation Project, near Yungaburra, Queensland, in providing habitat for rainforest-associated birds was monitored for the first seven years of the project from 1999. Regular 20-min area surveys showed that small and large remnants and plantings all differed in their avian communities. Major contributors to these differences were a suite of rainforest-associated birds that were more abundant in the remnants. Ordination showed that avian communities in plantings 4\u20137 years after their establishment were generally more similar to those in remnants than were the bird communities of younger plantings. Avian communities in the oldest of the planted sites all changed markedly through time and became more similar to the avian communities in the closest remnant sites. Rainforest-associated birds were observed in plantings as early as 1\u20133 years after their establishment and some rainforest dependent species were observed as early as 3\u20134 years after establishment. Of the rainforest-associated bird species observed in the remnants, 55% were also recorded in the plantings at some stage during the study. These results suggest that the project will be successful in providing a corridor between formerly isolated forest patches, at least for some species.",
         #         journal_name="Agriculture, Ecosystems & Environment"))]
 
+        # print(f"Num Responses {len(scraped_articles)} \n", flush=True)
+
         for response in scraped_articles:
             article = response.metadata
             relevant = False
@@ -348,6 +350,7 @@ class QueryDispatcher:
                     est = max(est, 0.01)
                     fetch_article_cb(num_scraped, est)
                     cnt = 0
+                    # print(f"Processed {num_scraped} articles \n", flush=True)
 
         if fetch_article_cb is not None:
             fetch_article_cb(len(scraped_articles), 1.0)

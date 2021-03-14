@@ -1,3 +1,4 @@
+import json
 import math
 import textwrap
 from datetime import datetime, date
@@ -51,6 +52,12 @@ def get_journals():
     journal_list = [x for x in journal_list if x]
     return journal_list
 
+def get_queryable_journals():
+    path = Path(__file__).parent / "frontend_data" / "all_queryable_journals.json"
+    with path.open("r") as f:
+        all_journals = json.load(f)
+    all_journals.sorted()
+    return all_journals
 
 # handle query input on the search page
 @app.route('/handle-search-query', methods=['POST'])
@@ -102,7 +109,7 @@ def results():
         'all_journals': 'Search all journals'
     }
     return render_template('results.html',
-                           journal_name=get_journals(),
+                           journal_name=get_queryable_journals(),
                            topic="Sync",
                            display_table=False,
                            result=None,
@@ -127,7 +134,7 @@ def results_table():
         to_article = from_article + articles_per_page
     articles_to_show = global_filter_result[from_article:to_article]
     return render_template('results.html',
-                           journal_name=get_journals(),
+                           journal_name=get_queryable_journals(),
                            topic="Sync",
                            display_table=True,
                            result=articles_to_show,
@@ -156,9 +163,11 @@ def handle_results_query():
         relevant_only = True
     else:
         relevant_only = False
-    all_journals = get_journals()
+    all_journals = get_queryable_journals()
+    all_journals_flag = False
     if request.form.get('all_journals'):
         journals = all_journals
+        all_journals_flag = True
     else:
         journals = []
         for journal in all_journals:
@@ -171,13 +180,15 @@ def handle_results_query():
     start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = request.form['end_date']
     end_date_object = datetime.strptime(end_date, '%Y-%m-%d').date()
+
     # create result filter object
     result_filter = ResultFilter(journal_names=journals,
                                  relevant_only=relevant_only,
                                  from_pub_date=start_date_object,
                                  to_pub_date=end_date_object,
-                                 from_sync_date=sync_date_object,
-                                 to_sync_date=date.today())
+                                 from_sync_date=None,
+                                 to_sync_date=None,
+                                 all_journals=all_journals_flag)
 
     # Ensure we don't double load the same query
     global cached_query
@@ -223,7 +234,8 @@ def convert_result(result_list):
             "Sync Date": article.sync_date,
             "Checked?": article.checked,
             # "Classified?": article.classified,
-            "Relevant?": article.relevant
+            "Relevant?": article.relevant,
+            "Score": article.relevance_score
         }
 
     if not result_list is None:

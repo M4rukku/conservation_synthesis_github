@@ -67,6 +67,7 @@ class ResultFilter:
                  classification: str = None,
                  from_sync_date: datetime.date = None,
                  to_sync_date: datetime.date = None,
+                 all_journals: bool = False
                  ):
         self.journal_names = journal_names
         self.relevant_only = relevant_only
@@ -77,6 +78,7 @@ class ResultFilter:
         self.to_pub_date = to_pub_date
         self.from_sync_date = from_sync_date
         self.to_sync_date = to_sync_date
+        self.all_journals = all_journals
 
     def __eq__(self, other):
         if not isinstance(other, ResultFilter):
