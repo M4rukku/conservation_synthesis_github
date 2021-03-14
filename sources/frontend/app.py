@@ -34,7 +34,7 @@ def search():
         'end_date': 'Publication End'
     }
     criteria = {
-        #'relevant_only': 'Return relevant articles only',
+        # 'relevant_only': 'Return relevant articles only',
         'all_journals': 'Sync all journals'
     }
     return render_template('search.html', journal_name=get_journals(), dates=dates, criteria=criteria)
@@ -52,20 +52,23 @@ def get_journals():
     journal_list = [x for x in journal_list if x]
     return journal_list
 
+
 def get_queryable_journals():
     path = Path(__file__).parent / "frontend_data" / "all_queryable_journals.json"
     with path.open("r") as f:
         all_journals = json.load(f)
+
     all_journals.sort()
     return all_journals
+
 
 # handle query input on the search page
 @app.route('/handle-search-query', methods=['POST'])
 def handle_search_query():
     # get all form fields
-    #if request.form.get('relevant_only'):
+    # if request.form.get('relevant_only'):
     #    relevant_only = True
-    #else:
+    # else:
     #    relevant_only = False
     all_journals = get_journals()
     if request.form.get('all_journals'):
@@ -100,13 +103,14 @@ def handle_search_query():
 @app.route('/results')
 def results():
     dates = {
-        #'sync_date': 'Sync',
+        # 'sync_date': 'Sync',
         'start_date': 'Publication Start',
         'end_date': 'Publication End'
     }
     criteria = {
         'relevant_only': 'Return relevant articles only',
-        'all_journals': 'Search all journals'
+        'all_journals': 'Search all journals',
+        'unchecked_only': 'Return Unchecked Articles Only'
     }
     return render_template('results.html',
                            journal_name=get_queryable_journals(),
@@ -163,6 +167,12 @@ def handle_results_query():
         relevant_only = True
     else:
         relevant_only = False
+
+    if request.form.get('unchecked_only'):
+        unchecked_only = True
+    else:
+        unchecked_only = False
+
     all_journals = get_queryable_journals()
     all_journals_flag = False
     if request.form.get('all_journals'):
@@ -174,8 +184,8 @@ def handle_results_query():
             if request.form.get(journal):
                 journals.append(journal)
 
-    sync_date = date(2000, 1, 1) #request.form['sync_date']
-    sync_date_object = sync_date # datetime.strptime(sync_date, '%Y-%m-%d').date()
+    sync_date = date(2000, 1, 1)  # request.form['sync_date']
+    sync_date_object = sync_date  # datetime.strptime(sync_date, '%Y-%m-%d').date()
     start_date = request.form['start_date']
     start_date_object = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = request.form['end_date']
@@ -188,6 +198,7 @@ def handle_results_query():
                                  to_pub_date=end_date_object,
                                  from_sync_date=None,
                                  to_sync_date=None,
+                                 remove_checked_articles=unchecked_only,
                                  all_journals=all_journals_flag)
 
     # Ensure we don't double load the same query
@@ -200,12 +211,19 @@ def handle_results_query():
     # create query handler and process query
     filter_handler = DatabaseResultQueryHandler()
     result = filter_handler.process_filter_query(result_filter)
-    result.sort(key=lambda article: article.relevance_score)
+    if result is not None:
+        result.sort(key=lambda article: article.relevance_score if article.relevance_score is not None else -1000,
+                    reverse=True)
     list_of_result_dicts = convert_result(result)
     global global_filter_result
     global_filter_result = list_of_result_dicts
     in_process = False
     return results_table()
+
+
+@app.route("/handle_checkbox_click", methods=['GET', 'POST'])
+def handle_checkbox_click():
+    print("HENLO")
 
 
 # helper function that converts list of objects into dict that can be displayed as a table
@@ -222,9 +240,11 @@ def convert_result(result_list):
             abstract = "\n".join(abstract)
 
         return {
+            "DOI": article.doi,
             "URL": f"<a target=\"_blank\" href=\"http://{article.url}\">URL</a>",
             "Title": article.title,
-            "Authors": textwrap.shorten(convert_list_to_string(article.authors), width=50, placeholder="..."),
+            "Authors": textwrap.shorten(convert_list_to_string(article.authors), width=50,
+                                        placeholder="...") if article.authors is not None else "",
             "Abstract": abstract,
             "Publication Date": article.publication_date,
             # "Publisher": article.publisher,
@@ -233,9 +253,9 @@ def convert_result(result_list):
             # "Journal Issue": article.journal_issue,
             # "ISSN": article.issn,
             "Sync Date": article.sync_date,
-            "Checked?": article.checked,
+            "Checked": article.checked,
             # "Classified?": article.classified,
-            "Relevant?": article.relevant,
+            "Relevant": article.relevant,
             "Score": article.relevance_score
         }
 

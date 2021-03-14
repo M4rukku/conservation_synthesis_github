@@ -132,7 +132,7 @@ class SQLiteDB(InternalSQLDatabase):
     @staticmethod
     def map_tuple_to_db_article(tuple):
         return DBArticleMetadata(title=tuple[1],
-                                 authors=author_string_to_list(tuple[2]),
+                                 authors=author_string_to_list(tuple[2]) if tuple[2] is not None else None,
                                  doi=tuple[3],
                                  publication_date=tuple[4],
                                  abstract=tuple[5],
@@ -159,7 +159,7 @@ class SQLiteDB(InternalSQLDatabase):
         entries = [rfilter.from_pub_date.isoformat(),
                    rfilter.to_pub_date.isoformat()]
 
-        query = "SELECT * FROM articles WHERE publication_date >= date(?) AND publication_date <= date(?)"
+        query = "SELECT * FROM articles WHERE date(publication_date) >= date(?) AND date(publication_date) <= date(?)"
 
         # SYNC DATES
         if rfilter.from_sync_date is not None:

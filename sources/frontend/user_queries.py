@@ -91,4 +91,5 @@ class ResultFilter:
                    self.classification == other.classification and \
                    self.remove_checked_articles == other.remove_checked_articles and \
                    self.relevant_only == other.relevant_only and \
-                   self.journal_names == other.journal_names
+                   self.from_pub_date == other.from_pub_date and \
+                   self.all_journals == other.all_journals

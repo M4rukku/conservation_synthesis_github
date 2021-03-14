@@ -1,39 +1,90 @@
 <div class="row" style="margin-bottom:5%; overflow-y: scroll">
-  <div class="col-md-10" id="results-table">
-    <table class="table table-bordered table-hover">
-        <!-- table header -->
-        {% if result %}
-        <thead class="thead-light">
-            <tr>
-                <th>#</th>
-              {% for key in result[0] %}
-              <th> {{ key }} </th>
-              {% endfor %}
-           </tr>
-        <thead>
-        <tbody>	
-          <!-- table rows -->
-          {% for article in result %}
-          <tr>
-             <td> {{(current_page - 1) * articles_per_page + loop.index}} </td>
-             {% for value in article.values() %}
-             <td>  {{ value|safe }} </td>
-             {% endfor %}
-          </tr>
-          {% endfor %}
-        </tbody>  
-        {% endif %}
-    </table>
-    <nav aria-label="Results page navigation">
-      <ul class="pagination justify-content-center">
-        {% if current_page != 1 %}
-          <li class="page-item"><a class="page-link" href="{{ url_for('results_table', page=current_page - 1) }}"><<</a></li>
-        {% endif %}
-          <li class="page-item"><a class="page-link" href="{{ url_for('results_table', page=current_page) }}">{{ current_page }}</a></li>
-        {% if current_page != max_page %}
-          <li class="page-item"><a class="page-link" href="{{ url_for('results_table', page=current_page + 1) }}">>></a></li>
-        {% endif %}
-      </ul>
-    </nav>
-  </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            $(document).ready(function () {
+                $('.check_type').on('click', function () {
+                    $.ajax({
+                        type: "POST",
+                        url: {{ url_for('handle_checkbox_click') }},
+                        data: $(this).attr('id'), //--> send id of checked checkbox on other page
+                        success: function (data) {
+                            alert('it worked');
+                            alert(data);
+                        },
+                        error: function () {
+                            alert('it broke');
+                        },
+                        complete: function () {
+                            alert('it completed');
+                        }
+                    });
+                });
+            });
+        }
+    </script>
+    <div class="col-md-10" id="results-table">
+        <table class="table table-bordered table-hover">
+            <!-- table header -->
+            {% if result %}
+                <thead class="thead-light">
+                <tr>
+                    <th>#</th>
+                    {% for key in result[0] %}
+                        {% if key !="DOI" %}
+                            <th> {{ key }} </th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                <thead>
+                <tbody>
+                <!-- table rows -->
+                {% for article in result %}
+                    <tr>
+                        <td> {{ (current_page - 1) * articles_per_page + loop.index }} </td>
+                        {% for name, value in article.items() %}
+                            {% if name =="Checked" %}
+                                <td>
+                                    {% if value == "True" %}
+                                        <input class="check_type" type="checkbox" id="{{ "cb" + article["DOI"] }}"
+                                               checked>
+                                        <label for="{{ article["DOI"] }}">Y/N</label>
+                                    {% else %}
+                                        <input class="check_type" type="checkbox" id="{{ "cb" + article["DOI"] }}">
+                                        <label for="{{ article["DOI"] }}">Y/N</label>
+                                    {% endif %}
+                                </td>
+                            {% elif name =="DOI" %}
+                            {% else %}
+                                <td>  {{ value|safe }} </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            {% endif %}
+        </table>
+        <nav aria-label="Results page navigation">
+            <ul class="pagination justify-content-center">
+                {% if current_page != 1 %}
+                    <li class="page-item"><a class="page-link"
+                                             href="{{ url_for('results_table', page=current_page - 1) }}"><<</a></li>
+                {% endif %}
+                <li class="page-item"><a class="page-link"
+                                         href="{{ url_for('results_table', page=current_page) }}">{{ current_page }}</a>
+                </li>
+
+                {% if current_page != max_page %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">...</a>
+                    </li>
+                    <li class="page-item"><a class="page-link"
+                                             href="{{ url_for('results_table', page=max_page) }}">{{ max_page }}</a>
+                    </li>
+                    <li class="page-item"><a class="page-link"
+                                             href="{{ url_for('results_table', page=current_page + 1) }}">>></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
 </div>
