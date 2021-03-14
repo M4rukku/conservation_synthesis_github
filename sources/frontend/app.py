@@ -56,7 +56,7 @@ def get_queryable_journals():
     path = Path(__file__).parent / "frontend_data" / "all_queryable_journals.json"
     with path.open("r") as f:
         all_journals = json.load(f)
-    all_journals.sorted()
+    all_journals.sort()
     return all_journals
 
 # handle query input on the search page
@@ -200,6 +200,7 @@ def handle_results_query():
     # create query handler and process query
     filter_handler = DatabaseResultQueryHandler()
     result = filter_handler.process_filter_query(result_filter)
+    result.sort(key=lambda article: article.relevance_score)
     list_of_result_dicts = convert_result(result)
     global global_filter_result
     global_filter_result = list_of_result_dicts

@@ -117,6 +117,17 @@ class SQLiteDB(InternalSQLDatabase):
         except Exception as e:
             pass
 
+    def _update_col_doi_based(self, doi: str, col_name: str, value):
+        cur = self._con.cursor()
+
+        entries = [value, doi]
+        update = f"UPDATE articles SET {col_name} = ? WHERE doi = ?"
+
+        try:
+            cur.execute(update, entries)
+        except Exception as e:
+            pass
+
 
     @staticmethod
     def map_tuple_to_db_article(tuple):
