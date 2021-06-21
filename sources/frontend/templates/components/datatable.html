@@ -8,16 +8,6 @@
                         type: "POST",
                         url: {{ url_for('handle_checkbox_click') }},
                         data: $(this).attr('id'), //--> send id of checked checkbox on other page
-                        success: function (data) {
-                            alert('it worked');
-                            alert(data);
-                        },
-                        error: function () {
-                            alert('it broke');
-                        },
-                        complete: function () {
-                            alert('it completed');
-                        }
                     });
                 });
             });

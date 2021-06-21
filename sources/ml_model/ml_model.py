@@ -23,4 +23,4 @@ class MlModelWrapper:
             bool: True if relevant, False otherwise.
         """
         # return False
-        return self.classifier.do_prediction(article.title, article.journal_name, article.abstract)
+        return self.classifier.b(article.title, article.journal_name, article.abstract)
